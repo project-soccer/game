@@ -312,3 +312,14 @@ input:focus-visible {
   outline: 2px solid #9ff4db;
   outline-offset: 3px;
 }
+/* Keep the contextual action readable while leaving the pitch unobstructed. */
+#possession {
+  color: #c3ffe2;
+  font-size: 12px;
+  line-height: 1.5;
+}
+#pass-feedback {
+  color: #f2cf83;
+  font-size: 12px;
+  min-height: 2.5em;
+}

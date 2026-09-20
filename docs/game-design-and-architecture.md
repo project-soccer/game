@@ -9,6 +9,7 @@ The [ADR index](adr/README.md) records accepted decisions, rationale, alternativ
 ## Current work
 
 - [Action laboratory](specifications/action-laboratory.md): setup, current scope, controls, limitations, and verification.
+- [Off-ball control experiment](specifications/off-ball-control.md): possession switches, pass requests, and playtest questions.
 - [First complete match](specifications/first-complete-match.md): the next milestone; not implemented by the laboratory.
 - [Open questions](open-questions.md): decisions and evidence still required.
 - [Contributing](CONTRIBUTING.md): contribution and documentation workflow.

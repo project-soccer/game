@@ -23,6 +23,13 @@ type Slot = {
   last: Input;
   highest: number;
   silent: number;
+  requestCooldown: number;
+  request?: {
+    carrier: number;
+    receiver: number;
+    expires: number;
+    started: boolean;
+  };
 };
 export class Simulation {
   readonly world: RAPIER.World;
@@ -110,6 +117,8 @@ export class Simulation {
       slot.controller.assignment++;
       slot.queue = [];
       slot.last = neutral(slot.controller.ack, slot.controller.assignment);
+      slot.request = undefined;
+      slot.requestCooldown = 0;
     }
     this.emit("reset", -1);
   }
@@ -124,9 +133,12 @@ export class Simulation {
       last: neutral(),
       highest: 0,
       silent: 0,
+      requestCooldown: 0,
     });
   }
   removeController(id: string) {
+    const slot = this.slots.get(id);
+    if (slot) this.cancelRequest(slot);
     this.slots.delete(id);
   }
   enqueue(id: string, value: unknown): boolean {
@@ -153,13 +165,98 @@ export class Simulation {
     )
       return;
     const old = this.players[slot.controller.player];
+    this.cancelRequest(slot);
     old.charge = 0;
     slot.controller.player = id;
     slot.controller.assignment++;
     slot.queue = [];
     slot.last = neutral(slot.controller.ack, slot.controller.assignment);
   }
-  private startAction(p: Footballer, name: ActionName, power = 0) {
+  private cancelRequest(slot: Slot) {
+    const request = slot.request;
+    if (!request) return;
+    const carrier = this.players[request.carrier];
+    if (request.started && carrier.action && !carrier.action.done)
+      carrier.action = null;
+    if (!request.started || !carrier.action?.done)
+      this.emit("pass-request-cancelled", request.receiver);
+    slot.request = undefined;
+  }
+  private requestPass(slot: Slot, receiver: Footballer) {
+    if (this.tick < slot.requestCooldown || slot.request) return;
+    slot.requestCooldown = this.tick + 30;
+    const carrier = this.owner === null ? undefined : this.players[this.owner];
+    if (
+      this.mode !== "team" ||
+      !carrier ||
+      carrier.team !== receiver.team ||
+      carrier.id === receiver.id ||
+      carrier.action ||
+      [...this.slots.values()].some(
+        (s) => s.controller.player === carrier.id,
+      ) ||
+      Math.hypot(carrier.x - receiver.x, carrier.z - receiver.z) > 22
+    ) {
+      this.emit("pass-request-unavailable", receiver.id);
+      return;
+    }
+    slot.request = {
+      carrier: carrier.id,
+      receiver: receiver.id,
+      expires: this.tick + 90,
+      started: false,
+    };
+    this.emit("pass-request", receiver.id);
+  }
+  private updateRequests() {
+    for (const slot of this.slots.values()) {
+      const request = slot.request;
+      if (!request) continue;
+      const p = this.players[request.carrier],
+        q = this.players[request.receiver];
+      if (request.started && p.action?.done) {
+        slot.request = undefined;
+        continue;
+      }
+      const b = this.ball.translation();
+      const distance = Math.hypot(q.x - p.x, q.z - p.z);
+      if (
+        slot.controller.player !== q.id ||
+        this.owner !== p.id ||
+        [...this.slots.values()].some((s) => s.controller.player === p.id) ||
+        Math.hypot(b.x - p.x, b.z - p.z) > 1.3 ||
+        b.y > 0.65 ||
+        (!request.started && (this.tick >= request.expires || distance > 22))
+      ) {
+        this.cancelRequest(slot);
+        continue;
+      }
+      if (request.started || p.action || distance < 1.2) continue;
+      const desired = Math.atan2(q.x - p.x, q.z - p.z);
+      const turn = Math.atan2(
+        Math.sin(desired - p.facing),
+        Math.cos(desired - p.facing),
+      );
+      p.facing += Math.max(-6 * DT, Math.min(6 * DT, turn));
+      // Turn with ordinary assisted touches before committing to the kick.
+      const front =
+        (b.x - p.x) * Math.sin(desired) + (b.z - p.z) * Math.cos(desired);
+      if (
+        Math.abs(turn) < 0.12 &&
+        front > 0.1 &&
+        Math.hypot(b.x - p.x, b.z - p.z) < 1.05
+      ) {
+        this.startAction(p, "pass", 0, q.id);
+        request.started = !!p.action;
+      }
+    }
+  }
+  private startAction(
+    p: Footballer,
+    name: ActionName,
+    power = 0,
+    requestedTarget?: number,
+  ) {
     if (p.action) return;
     const ball = this.ball.translation();
     const reachable =
@@ -168,7 +265,13 @@ export class Simulation {
     let dx = Math.sin(p.facing),
       dz = Math.cos(p.facing),
       target: number | null = null;
-    if (name === "pass") {
+    if (name === "pass" && requestedTarget !== undefined) {
+      const q = this.players[requestedTarget],
+        d = Math.hypot(q.x - p.x, q.z - p.z);
+      target = q.id;
+      dx = (q.x - p.x) / d;
+      dz = (q.z - p.z) / d;
+    } else if (name === "pass") {
       let best = Infinity;
       for (const q of this.players)
         if (q.team === p.team && q.id !== p.id) {
@@ -220,6 +323,7 @@ export class Simulation {
         i = { ...i, pass: false, release: false, tackle: false, switch: false };
       let p = this.players[slot.controller.player];
       if (i.cancel) {
+        this.cancelRequest(slot);
         p.charge = 0;
         i = { ...neutral(i.seq, i.assignment) };
       }
@@ -234,16 +338,20 @@ export class Simulation {
         if (i.release) {
           this.startAction(p, "shot", p.charge);
           p.charge = 0;
-        } else if (i.pass) this.startAction(p, "pass");
-        else if (i.tackle) this.startAction(p, "tackle");
+        } else if (i.pass) {
+          if (this.owner !== p.id) this.requestPass(slot, p);
+          else this.startAction(p, "pass");
+        } else if (i.tackle) this.startAction(p, "tackle");
       }
       inputs.set(p.id, i);
     }
+    this.updateRequests();
     for (const p of this.players) {
       const i = inputs.get(p.id) ?? neutral();
       movePlayer(p, i);
-      // Target teammates wait and face the ball; tactical match AI is a later milestone.
-      if (!inputs.has(p.id) && !p.action) {
+      // The AI carrier holds its orientation and uses the same touch rules as a human.
+      // Other target teammates wait; tactical match AI is a later milestone.
+      if (!inputs.has(p.id) && !p.action && this.owner !== p.id) {
         const b = this.ball.translation();
         p.facing = Math.atan2(b.x - p.x, b.z - p.z);
       }

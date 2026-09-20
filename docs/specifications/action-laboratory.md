@@ -52,6 +52,7 @@ Local checks: `npm run typecheck`, `npm test`, `npm run build`; with the server 
 - Rapier server-side ball simulation; shared bounded movement; standing-tackle/pass/shot action phases.
 - Two-participant private Colyseus rooms; intent validation, sequence/assignment checks, queue/rate bounds, input timeout, server snapshots, local movement prediction and reconciliation.
 - Ground passing, charge/release shooting, sprint, manual switching, and recipient handoff after a pass contact in team mode.
+- [Off-ball control experiment](off-ball-control.md): switch away from possession, position the receiver, and request a physical ground pass from the AI carrier while retaining receiver control.
 - Original idle/run/sprint/pass/shot/tackle/receive animation clips; no third-party model or motion files.
 - A shot counter and automatic exercise reset on an out-of-bounds ball. These are laboratory conveniences, not complete match rules.
 - A core `individual` control mode that prohibits switching, checked programmatically; the current user interface starts team-control rooms.
@@ -62,7 +63,7 @@ Local checks: `npm run typecheck`, `npm test`, `npm run build`; with the server 
 |---|---|---|
 | Move/aim | WASD | Left stick |
 | Sprint | Shift | Right trigger |
-| Ground pass | J | South / A |
+| Ground pass / call for a pass | J | South / A |
 | Charge then shoot | Hold/release K | Hold/release east / B |
 | Standing tackle | L | West / X |
 | Switch outfield footballer | Q | Left bumper |
@@ -88,10 +89,11 @@ A departing participant leaves the room available for a replacement during this 
 
 ## Verification
 
-Verified on 2026-09-20 through Docker Compose: TypeScript checks, eight simulation tests, production client build, the two-client network smoke test, and two isolated Chromium contexts including skeletal locomotion. The rendered pitch screenshot was inspected. No host application automation is needed for this workflow. The build still reports a large client bundle and browser-externalized Node worker imports in optional PlayCanvas parsers; production bundle optimization remains open.
+Verified on 2026-09-20 through Docker Compose: TypeScript checks, 21 simulation tests, production client build, the two-client network smoke test, and two isolated Chromium contexts including skeletal locomotion and off-ball control. The rendered pitch and off-ball HUD screenshots were inspected. No host application automation is needed for this workflow. The build still reports a large client bundle and browser-externalized Node worker imports in optional PlayCanvas parsers; production bundle optimization remains open.
 
 - Simulation tests cover malformed/non-finite inputs, bounded movement despite bursts, exactly one scheduled pass contact, stale assignment rejection, lost-ball misses, individual-mode switching, timeout, whole-ball goals, and repeated resets.
-- Network smoke tests use two independent SDK clients and check shared movement/events, capacity, malformed inputs, handoff, and reset.
-- Browser smoke tests open two isolated browser contexts, load the rigged pitch, move via keyboard, and observe the same charged shot contact in both clients. Screenshots support visual inspection.
+- Off-ball simulation tests cover backward passes, interceptions, missed moving receivers, request expiry and cancellation, reset, and prohibiting control of another human.
+- Network smoke tests use two independent SDK clients and check shared movement/events, capacity, malformed inputs, switching, reset, AI pass requests and controlled reception.
+- Browser smoke tests open two isolated browser contexts, load the rigged pitch, move via keyboard, observe the same charged shot, then switch, run off the ball, call for a pass and receive while retaining control. Screenshots support visual inspection.
 
 Automated checks are not gameplay approval. Actual gamepads, multiple browser engines, non-local network conditions, eight/22-footballer load, and animation quality require further testing.

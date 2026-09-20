@@ -63,12 +63,48 @@ try {
   await b.waitForFunction(() =>
     window.soccerLab.snapshot.events.some((e) => e.type === "shot-contact"),
   );
+  // Wait out the reset cooldown, then exercise the off-ball path through real inputs.
+  await a.waitForTimeout(1100);
   await a.getByRole("button", { name: "Reset the exercise" }).click();
-  await a.waitForTimeout(600);
+  await a.waitForFunction(
+    () =>
+      window.soccerLab.snapshot.owner === 0 &&
+      window.soccerLab.snapshot.controllers[window.soccerLab.sessionId]
+        .player === 0,
+  );
+  await a.keyboard.press("KeyQ");
+  await a.waitForFunction(
+    () =>
+      window.soccerLab.snapshot.controllers[window.soccerLab.sessionId]
+        .player === 1,
+  );
+  await a
+    .getByText("Off the ball · move into space", { exact: false })
+    .waitFor();
+  await a.keyboard.down("KeyS");
+  await a.waitForTimeout(300);
+  await a.keyboard.up("KeyS");
+  await a.waitForTimeout(300);
+  await a.screenshot({ path: "test-results/off-ball.png" });
+  await a.keyboard.press("KeyJ");
+  await a.waitForFunction(() => window.soccerLab.snapshot.owner === 1);
+  await b.waitForFunction(() =>
+    window.soccerLab.snapshot.events.some(
+      (e) => e.type === "pass-contact" && e.actor === 0,
+    ),
+  );
+  assert.equal(
+    await a.evaluate(
+      () =>
+        window.soccerLab.snapshot.controllers[window.soccerLab.sessionId]
+          .player,
+    ),
+    1,
+  );
   await a.screenshot({ path: "test-results/practice.png" });
   assert.deepEqual(errors, []);
   console.log(
-    "PASS: two browser contexts, rendered pitch, shared room, keyboard movement, charged shot/contact received by both clients.",
+    "PASS: two browser contexts, animated pitch, movement, shared shot, off-ball switch/run/request, AI pass and controlled reception.",
   );
 } finally {
   await browser.close();

@@ -150,6 +150,14 @@ const indicator = ring(
   0.48,
   material("#c3ffe2"),
 );
+const aiCarrierIndicator = ring(
+  "AI ball carrier",
+  0,
+  0,
+  0.62,
+  material("#f2cf83"),
+);
+aiCarrierIndicator.enabled = false;
 const avatars = new Map<number, { entity: pc.Entity; state: string }>();
 const assetPromise = new Promise<pc.Asset>((resolve, reject) =>
   app.assets.loadFromUrl("/assets/footballer.glb", "container", (err, asset) =>
@@ -303,6 +311,38 @@ function receive(state: Snapshot) {
     predicted = next;
     el("team").textContent = control.team === 0 ? "Blue team" : "Coral team";
     el("power").setAttribute("value", String(actual.charge));
+    const carrier =
+      state.owner === null ? undefined : state.players[state.owner];
+    const aiHasBall =
+      carrier?.team === control.team &&
+      carrier.id !== control.player &&
+      !Object.values(state.controllers).some((c) => c.player === carrier.id);
+    el("possession").textContent =
+      carrier?.id === control.player
+        ? "On the ball · J / A to pass. Q / LB to make an off-ball run."
+        : aiHasBall
+          ? "Off the ball · move into space, then J / A to call. Gold ring: AI carrier."
+          : "Win possession to pass. Q / LB switches your footballer.";
+    const feedback = [...state.events]
+      .reverse()
+      .find(
+        (e) =>
+          e.actor === control.player &&
+          e.type.startsWith("pass-request") &&
+          state.tick - e.tick < 120,
+      );
+    el("pass-feedback").textContent =
+      feedback?.type === "pass-request"
+        ? carrier?.id === control.player
+          ? "Pass received · you still control the receiver."
+          : "Pass requested · stay ready to receive."
+        : feedback?.type === "pass-request-cancelled"
+          ? "Request cancelled · reposition and try again."
+          : feedback?.type === "pass-request-unavailable"
+            ? "No pass available from an AI teammate right now."
+            : "";
+    aiCarrierIndicator.enabled = aiHasBall;
+    if (aiHasBall) aiCarrierIndicator.setPosition(carrier.x, 0, carrier.z);
   }
   el("score-value").textContent = `${state.goals[0]} : ${state.goals[1]}`;
   el("status").textContent =
@@ -342,6 +382,7 @@ async function connect(id?: string) {
     room.onError((_code, message) => showError(message));
     room.onLeave(() => {
       room = undefined;
+      aiCarrierIndicator.enabled = false;
       clearInput();
       el("connection").textContent = "Disconnected — reload to reconnect";
       el("status").textContent = "Session ended. Reload to start again.";

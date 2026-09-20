@@ -76,8 +76,31 @@ try {
   assert.ok(
     latest.get(a.sessionId)!.players.every((p) => Number.isFinite(p.x)),
   );
+  const resetControl = latest.get(a.sessionId)!.controllers[a.sessionId];
+  a.send("input", { ...neutral(33, resetControl.assignment), switch: true });
+  await until(
+    () => latest.get(a.sessionId)!.controllers[a.sessionId].player === 1,
+    "off-ball switch",
+  );
+  const caller = latest.get(a.sessionId)!.controllers[a.sessionId];
+  a.send("input", { ...neutral(34, caller.assignment), pass: true });
+  await until(
+    () =>
+      latest
+        .get(b!.sessionId)!
+        .events.some((e) => e.type === "pass-contact" && e.actor === 0),
+    "AI pass seen by opponent",
+  );
+  await until(
+    () => latest.get(a.sessionId)!.owner === 1,
+    "caller receives physical pass",
+  );
+  assert.equal(
+    latest.get(a.sessionId)!.controllers[a.sessionId].assignment,
+    caller.assignment,
+  );
   console.log(
-    "PASS: two independent clients, distinct control, shared movement/events, room capacity, malformed input, handoff, reset.",
+    "PASS: two independent clients, shared movement/events, capacity, validation, switching, reset, AI pass request and controlled reception.",
   );
 } finally {
   await b?.leave();

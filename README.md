@@ -12,6 +12,8 @@ Open http://localhost:5173, enter the practice pitch, and use **Invite** to shar
 
 See the [laboratory specification](docs/specifications/action-laboratory.md) for controls, checks, optional local setup, and limitations.
 
+Try the [off-ball control experiment](docs/specifications/off-ball-control.md): Q / LB switches away from possession; move your receiver and press J / A to request a ground pass from the AI carrier. The pass can miss or be intercepted. This mechanic is provisional and needs gameplay feedback.
+
 ## Documentation
 
 - [Project map](docs/game-design-and-architecture.md)

@@ -5,6 +5,7 @@ Accepted decisions are in the [ADR index](adr/README.md). These items remain unr
 | Area | Required decision or evidence | Legacy IDs |
 |---|---|---|
 | Gameplay quality | Tune first touch, sprint control, assistance, body separation, and contested possession through playtests | D14, D18 |
+| Off-ball control | Evaluate contextual pass requests, AI possession safety, response timing, and whether to retain the experiment | ADR 0015 |
 | Animation/art | Improve the original test rig and foot planting; choose final style and any external assets with redistribution terms | D09, D17, D31 |
 | Networking | Measure real-network correction and ball presentation; compare alternative transport only if justified | D15, D16 |
 | Performance/devices | Name reference hardware, browsers, and actual controllers; benchmark 8/22 footballers and room density | D19, D40 |

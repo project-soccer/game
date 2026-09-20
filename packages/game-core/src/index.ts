@@ -1,4 +1,4 @@
-export const PROTOCOL = "soccer-lab-1";
+export const PROTOCOL = "soccer-lab-2";
 export const DT = 1 / 60;
 export const BALL_RADIUS = 0.11;
 export const PITCH = {
