@@ -1,6 +1,6 @@
 # Project Soccer — Game
 
-A browser football experiment built with PlayCanvas, Rapier, TypeScript, and an authoritative Colyseus server. **Squad training and an action laboratory are available; a complete match is next.**
+A browser football experiment built with PlayCanvas, Rapier, TypeScript, and an authoritative Colyseus server. **Squad training and an action laboratory are available; character and movement quality are the current priority.**
 
 ## Run with Docker
 

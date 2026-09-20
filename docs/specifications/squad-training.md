@@ -24,7 +24,7 @@ When alone, the other side remains AI-controlled. Joining assigns control of tha
 
 ## Remaining match work
 
-Goals still increment a practice counter and reset the exercise. Out-of-bounds balls still reset. There is no four-minute clock, kickoff/restart state machine, last-touch restart award, result screen or mutual rematch. Those form the next increment. Initial formation and movement values are tuning choices, not final balance decisions.
+Goals still increment a practice counter and reset the exercise. Out-of-bounds balls still reset. There is no four-minute clock, kickoff/restart state machine, last-touch restart award, result screen or mutual rematch. These follow the newly prioritized character and movement quality proof in the roadmap. Initial formation and movement values are tuning choices, not final balance decisions.
 
 The original nine-joint model and receive clip visualize keeper actions only approximately. Player contact remains simple separation rather than full body collision. No real-network or frame-rate benchmark is claimed by these checks.
 
