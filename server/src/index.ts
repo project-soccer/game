@@ -10,11 +10,16 @@ class Laboratory extends Room {
     string,
     { count: number; start: number; reset: number }
   >();
-  async onCreate(options: { protocol?: string; mode?: string }) {
+  async onCreate(options: {
+    protocol?: string;
+    mode?: string;
+    scenario?: string;
+  }) {
     if (options.protocol !== PROTOCOL)
       throw new Error("Client/server versions differ. Refresh both clients.");
     this.sim = new Simulation(
       options.mode === "individual" ? "individual" : "team",
+      options.scenario === "squad" ? "squad" : "technical",
     );
     await this.setPrivate(true);
     this.onMessage("input", (client, value: unknown) => {

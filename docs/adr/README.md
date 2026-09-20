@@ -19,6 +19,7 @@ These ADRs are the authoritative decision record. **Accepted means chosen, not i
 | 0013 | [Keep the brand master as native SVG](0013-keep-the-brand-master-as-native-svg.md) | Accepted | D31; brand format |
 | 0014 | [Use Docker Compose for development](0014-use-docker-compose-for-development.md) | Accepted | Development environment |
 | 0015 | [Experiment with off-ball control and pass requests](0015-experiment-with-off-ball-control-and-pass-requests.md) | Accepted for experiment | Gameplay playtest feedback |
+| 0016 | [Use server-side heuristics for initial team AI](0016-use-server-side-heuristics-for-initial-team-ai.md) | Accepted for experiment | Squad-training increment |
 
 ## Lifecycle
 

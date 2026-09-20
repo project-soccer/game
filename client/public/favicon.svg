@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1254 1254" width="1254" height="1254" role="img" aria-labelledby="title desc">
+  <title id="title">Project Soccer</title>
+  <desc id="desc">An opaque black and white football with a PS monogram. The exterior is transparent.</desc>
+  <!-- The solid disc deliberately keeps every internal region opaque. -->
+  <circle cx="627" cy="627" r="625" fill="#000000"/>
+  <g fill="#ffffff">
+    <circle cx="627" cy="627" r="609" fill="none" stroke="#ffffff" stroke-width="22"/>
+    <path d="M455 47 A605 605 0 0 1 797 47 L857 155 L754 242 L498 242 L393 155Z"/>
+    <path d="M180 230 L346 165 L465 260 L406 444 L198 562 L108 500 L77 398 A605 605 0 0 1 180 230Z"/>
+    <path d="M1074 230 L908 165 L789 260 L848 444 L1056 562 L1146 500 L1177 398 A605 605 0 0 0 1074 230Z"/>
+    <path d="M72 841 L217 812 L366 966 L404 1085 L336 1144 A605 605 0 0 1 72 841Z"/>
+    <path d="M1182 841 L1037 812 L888 966 L850 1085 L918 1144 A605 605 0 0 0 1182 841Z"/>
+    <path d="M400 962 L627 864 L844 966 L807 1092 L663 1211 L627 1239 L579 1211 L440 1087Z"/>
+    <!-- Letter P: its counter reveals the opaque black disc, never the background. -->
+    <path fill-rule="evenodd" d="M221 590 L410 471 L607 584 L607 837 L551 867 L311 760 L311 879 L221 798Z M311 622 L387 579 L497 642 L497 721 L490 727 L311 665Z"/>
+    <path d="M645 584 L841 471 L1030 589 L1030 667 L853 578 L759 632 L1030 742 L1030 800 L853 945 L645 838 L645 748 L849 846 L903 811 L645 708Z"/>
+  </g>
+</svg>

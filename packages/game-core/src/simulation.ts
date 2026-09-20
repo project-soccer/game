@@ -1,9 +1,11 @@
 import RAPIER from "@dimforge/rapier3d-compat";
+import { squadTargets } from "./squad-ai.ts";
 import {
   BALL_RADIUS,
   DT,
   PROTOCOL,
   crossedGoal,
+  createRoster,
   movePlayer,
   neutral,
   parseInput,
@@ -14,6 +16,7 @@ import {
   type LabEvent,
   type Mode,
   type Snapshot,
+  type Scenario,
 } from "./index.ts";
 let initialization: Promise<void> | undefined;
 export const initPhysics = () => (initialization ??= RAPIER.init());
@@ -45,7 +48,15 @@ export class Simulation {
   private touchTick = -100;
   private freeUntil = 0;
   private lastKicker = -1;
-  constructor(readonly mode: Mode = "team") {
+  private aiTargets = new Map<number, { x: number; z: number }>();
+  private aiNextAction = new Map<number, number>();
+  private keeperPossession = new Map<number, number>();
+  private keeperSaveAfter = new Map<number, number>();
+  private passFlight?: { receiver: number; until: number };
+  constructor(
+    readonly mode: Mode = "team",
+    readonly scenario: Scenario = "technical",
+  ) {
     this.world = new RAPIER.World({ x: 0, y: -9.81, z: 0 });
     this.world.timestep = DT;
     this.world.createCollider(
@@ -88,23 +99,12 @@ export class Simulation {
     this.events = this.events.slice(-32);
   }
   reset() {
-    this.players = [
-      [-5, 0, 0],
-      [3, -3, 0],
-      [5, 4, 1],
-      [-3, 5, 1],
-    ].map(([x, z, team], id) => ({
-      id,
-      team,
-      x,
-      z,
-      vx: 0,
-      vz: 0,
-      facing: team === 0 ? Math.PI / 2 : -Math.PI / 2,
-      charge: 0,
-      action: null,
-      receiveUntil: 0,
-    }));
+    this.players = createRoster(this.scenario);
+    this.aiTargets.clear();
+    this.aiNextAction.clear();
+    this.keeperPossession.clear();
+    this.keeperSaveAfter.clear();
+    this.passFlight = undefined;
     this.ball.setTranslation({ x: -4.35, y: BALL_RADIUS + 0.01, z: 0 }, true);
     this.ball.setLinvel({ x: 0, y: 0, z: 0 }, true);
     this.ball.setAngvel({ x: 0, y: 0, z: 0 }, true);
@@ -113,7 +113,7 @@ export class Simulation {
     this.lastKicker = -1;
     this.touchTick = this.tick - 20;
     for (const slot of this.slots.values()) {
-      slot.controller.player = slot.controller.team * 2;
+      slot.controller.player = this.outfield(slot.controller.team)[0].id;
       slot.controller.assignment++;
       slot.queue = [];
       slot.last = neutral(slot.controller.ack, slot.controller.assignment);
@@ -128,7 +128,12 @@ export class Simulation {
       (t) => ![...this.slots.values()].some((s) => s.controller.team === t),
     )!;
     this.slots.set(id, {
-      controller: { team, player: team * 2, assignment: 0, ack: 0 },
+      controller: {
+        team,
+        player: this.outfield(team)[0].id,
+        assignment: 0,
+        ack: 0,
+      },
       queue: [],
       last: neutral(),
       highest: 0,
@@ -161,7 +166,8 @@ export class Simulation {
   private switchTo(slot: Slot, id: number) {
     if (
       this.mode === "individual" ||
-      this.players[id]?.team !== slot.controller.team
+      this.players[id]?.team !== slot.controller.team ||
+      this.players[id]?.role === "goalkeeper"
     )
       return;
     const old = this.players[slot.controller.player];
@@ -171,6 +177,167 @@ export class Simulation {
     slot.controller.assignment++;
     slot.queue = [];
     slot.last = neutral(slot.controller.ack, slot.controller.assignment);
+  }
+  private outfield(team: number) {
+    return this.players.filter((p) => p.team === team && p.role === "outfield");
+  }
+  private updateSquadAI(inputs: Map<number, Input>) {
+    const b = this.ball.translation();
+    // Bounded 10 Hz tactical perception, with ordinary acceleration between decisions.
+    if (this.tick % 6 === 1 || !this.aiTargets.size)
+      this.aiTargets = squadTargets(
+        this.players,
+        this.owner,
+        b,
+        this.ball.linvel(),
+      );
+    if (
+      this.owner !== null ||
+      (this.passFlight && this.tick > this.passFlight.until)
+    )
+      this.passFlight = undefined;
+    for (const p of this.players) {
+      if (inputs.has(p.id)) continue;
+      const i = neutral();
+      const teamHasHuman = [...this.slots.values()].some(
+        (s) => s.controller.team === p.team,
+      );
+      let target = this.aiTargets.get(p.id) ?? p;
+      const waitingForPass =
+        this.players.some(
+          (q) =>
+            q.action?.name === "pass" &&
+            !q.action.done &&
+            q.action.target === p.id,
+        ) || this.passFlight?.receiver === p.id;
+      if (this.owner === p.id) {
+        if (p.role === "goalkeeper") {
+          const since = this.keeperPossession.get(p.id) ?? this.tick;
+          this.keeperPossession.set(p.id, since);
+          target = p;
+          // Offer the normal pass-request path first, then distribute automatically.
+          if (
+            this.tick - since >= 120 &&
+            !p.action &&
+            ![...this.slots.values()].some((s) => s.request?.carrier === p.id)
+          ) {
+            const receiver = [...this.outfield(p.team)].sort(
+              (a, c) =>
+                Math.hypot(a.x - p.x, a.z - p.z) -
+                Math.hypot(c.x - p.x, c.z - p.z),
+            )[0];
+            // Reuse the turn/contact preparation even for a completely AI team below.
+            const angle = Math.atan2(receiver.x - p.x, receiver.z - p.z);
+            const turn = Math.atan2(
+              Math.sin(angle - p.facing),
+              Math.cos(angle - p.facing),
+            );
+            p.facing += Math.max(-6 * DT, Math.min(6 * DT, turn));
+            const front =
+              (b.x - p.x) * Math.sin(angle) + (b.z - p.z) * Math.cos(angle);
+            if (Math.abs(turn) < 0.12 && front > 0.1)
+              this.startAction(p, "pass", 0, receiver.id);
+          }
+        } else if (teamHasHuman) target = p;
+        else {
+          const direction = p.team === 0 ? 1 : -1;
+          target = { x: direction * 19, z: 0 };
+          if (
+            direction * p.x > 8 &&
+            !p.action &&
+            this.tick >= (this.aiNextAction.get(p.id) ?? 0)
+          ) {
+            this.startAction(p, "shot", 0.45);
+            this.aiNextAction.set(p.id, this.tick + 60);
+          }
+        }
+      } else {
+        this.keeperPossession.delete(p.id);
+        if (waitingForPass) target = p;
+        const carrier =
+          this.owner === null ? undefined : this.players[this.owner];
+        if (
+          p.role === "outfield" &&
+          carrier &&
+          carrier.team !== p.team &&
+          Math.hypot(b.x - p.x, b.z - p.z) < 0.95 &&
+          this.tick >= (this.aiNextAction.get(p.id) ?? 0) &&
+          !p.action
+        ) {
+          this.startAction(p, "tackle");
+          this.aiNextAction.set(p.id, this.tick + 60);
+        }
+      }
+      if (!p.action) {
+        const dx = target.x - p.x,
+          dz = target.z - p.z,
+          d = Math.hypot(dx, dz);
+        if (d > 0.2) {
+          const scale = Math.min(p.role === "goalkeeper" ? 0.85 : 0.8, d / 1.5);
+          i.x = (dx / d) * scale;
+          i.z = (dz / d) * scale;
+        }
+      }
+      inputs.set(p.id, i);
+    }
+  }
+  private resolveKeeperSaves(before: { x: number; y: number; z: number }) {
+    if (this.owner !== null) return;
+    const after = this.ball.translation(),
+      velocity = this.ball.linvel();
+    for (const p of this.players.filter((q) => q.role === "goalkeeper")) {
+      if (p.action || this.tick < (this.keeperSaveAfter.get(p.id) ?? 0))
+        continue;
+      const dx = after.x - before.x,
+        dz = after.z - before.z;
+      const length2 = dx * dx + dz * dz;
+      const t =
+        length2 > 0
+          ? Math.max(
+              0,
+              Math.min(
+                1,
+                ((p.x - before.x) * dx + (p.z - before.z) * dz) / length2,
+              ),
+            )
+          : 0;
+      const contact = {
+        x: before.x + dx * t,
+        y: before.y + (after.y - before.y) * t,
+        z: before.z + dz * t,
+      };
+      const distance = Math.hypot(contact.x - p.x, contact.z - p.z);
+      const direction = p.team === 0 ? 1 : -1;
+      if (
+        distance > 0.7 ||
+        contact.y > 1.6 ||
+        contact.y < BALL_RADIUS - 0.03 ||
+        direction * (contact.x - p.x) < -0.2 ||
+        direction * velocity.x >= -0.2
+      )
+        continue;
+      // Swept contact prevents a fast ball tunnelling through the keeper's save volume.
+      this.ball.setTranslation(contact, true);
+      p.receiveUntil = this.tick + 24;
+      this.keeperSaveAfter.set(p.id, this.tick + 24);
+      if (Math.hypot(velocity.x, velocity.z) < 11 && contact.y < 0.5) {
+        this.ball.setLinvel({ x: 0, y: 0, z: 0 }, true);
+        this.owner = p.id;
+        p.facing = (direction * Math.PI) / 2;
+        this.keeperPossession.set(p.id, this.tick);
+        this.touchTick = this.tick - 15;
+        this.emit("keeper-control", p.id);
+      } else {
+        this.ball.setLinvel(
+          { x: direction * 5, y: 1.2, z: (contact.z >= p.z ? 1 : -1) * 7 },
+          true,
+        );
+        this.freeUntil = this.tick + 10;
+        this.lastKicker = p.id;
+        this.emit("keeper-parry", p.id);
+      }
+      break;
+    }
   }
   private cancelRequest(slot: Slot) {
     const request = slot.request;
@@ -273,12 +440,14 @@ export class Simulation {
       dz = (q.z - p.z) / d;
     } else if (name === "pass") {
       let best = Infinity;
+      const aimX = dx,
+        aimZ = dz;
       for (const q of this.players)
         if (q.team === p.team && q.id !== p.id) {
           const x = q.x - p.x,
             z = q.z - p.z,
             d = Math.hypot(x, z),
-            alignment = (x * dx + z * dz) / d;
+            alignment = (x * aimX + z * aimZ) / d;
           const score = (1 - alignment) * 20 + d * 0.15;
           if (alignment > 0.55 && score < best) {
             best = score;
@@ -328,7 +497,10 @@ export class Simulation {
         i = { ...neutral(i.seq, i.assignment) };
       }
       if (i.switch && !p.action) {
-        this.switchTo(slot, p.id === p.team * 2 ? p.id + 1 : p.id - 1);
+        const teammates = this.outfield(p.team);
+        const next =
+          (teammates.findIndex((q) => q.id === p.id) + 1) % teammates.length;
+        this.switchTo(slot, teammates[next].id);
         p = this.players[slot.controller.player];
         i = neutral(i.seq, slot.controller.assignment);
       }
@@ -345,13 +517,20 @@ export class Simulation {
       }
       inputs.set(p.id, i);
     }
+    const humanPlayers = new Set(inputs.keys());
+    if (this.scenario === "squad") this.updateSquadAI(inputs);
     this.updateRequests();
     for (const p of this.players) {
       const i = inputs.get(p.id) ?? neutral();
       movePlayer(p, i);
       // The AI carrier holds its orientation and uses the same touch rules as a human.
       // Other target teammates wait; tactical match AI is a later milestone.
-      if (!inputs.has(p.id) && !p.action && this.owner !== p.id) {
+      if (
+        !humanPlayers.has(p.id) &&
+        !p.action &&
+        this.owner !== p.id &&
+        Math.hypot(i.x, i.z) < 0.1
+      ) {
         const b = this.ball.translation();
         p.facing = Math.atan2(b.x - p.x, b.z - p.z);
       }
@@ -402,6 +581,10 @@ export class Simulation {
                 ? 5
                 : 10;
           if (action.name === "pass" && action.target !== null) {
+            this.passFlight = {
+              receiver: action.target,
+              until: this.tick + 150,
+            };
             const q = this.players[action.target];
             speed = Math.min(16, 6 + Math.hypot(q.x - p.x, q.z - p.z) * 0.65);
           }
@@ -441,6 +624,7 @@ export class Simulation {
             !p.action &&
             (p.id !== this.lastKicker || this.tick > this.freeUntil + 10) &&
             Math.hypot(b.x - p.x, b.z - p.z) < 0.85 &&
+            (p.role !== "goalkeeper" || speed < 4) &&
             speed < 19,
         )
         .sort(
@@ -473,6 +657,7 @@ export class Simulation {
     }
     const before = { ...this.ball.translation() };
     this.world.step();
+    if (this.scenario === "squad") this.resolveKeeperSaves(before);
     b = this.ball.translation();
     const goal = crossedGoal(before, b);
     if (goal !== null) {
@@ -502,6 +687,7 @@ export class Simulation {
       events: this.events.map((e) => ({ ...e })),
       goals: [...this.goals],
       mode: this.mode,
+      scenario: this.scenario,
     };
   }
   dispose() {

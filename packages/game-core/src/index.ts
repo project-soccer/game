@@ -1,4 +1,4 @@
-export const PROTOCOL = "soccer-lab-2";
+export const PROTOCOL = "soccer-lab-3";
 export const DT = 1 / 60;
 export const BALL_RADIUS = 0.11;
 export const PITCH = {
@@ -8,6 +8,7 @@ export const PITCH = {
   goalHeight: 2,
 };
 export type Mode = "team" | "individual";
+export type Scenario = "technical" | "squad";
 export type ActionName = "pass" | "shot" | "tackle" | "receive";
 export type Input = {
   seq: number;
@@ -88,6 +89,7 @@ export type Action = {
 export type Footballer = {
   id: number;
   team: number;
+  role: "outfield" | "goalkeeper";
   x: number;
   z: number;
   vx: number;
@@ -119,7 +121,44 @@ export type Snapshot = {
   events: LabEvent[];
   goals: number[];
   mode: Mode;
+  scenario: Scenario;
 };
+export function createRoster(scenario: Scenario): Footballer[] {
+  const positions =
+    scenario === "squad"
+      ? [
+          [-5, 0, 0],
+          [-1, -6, 0],
+          [-8, 6, 0],
+          [-18.5, 0, 0],
+          [5, 0, 1],
+          [1, 6, 1],
+          [8, -6, 1],
+          [18.5, 0, 1],
+        ]
+      : [
+          [-5, 0, 0],
+          [3, -3, 0],
+          [5, 4, 1],
+          [-3, 5, 1],
+        ];
+  return positions.map(([x, z, team], id) => ({
+    id,
+    team,
+    role:
+      scenario === "squad" && (id === 3 || id === 7)
+        ? "goalkeeper"
+        : "outfield",
+    x,
+    z,
+    vx: 0,
+    vz: 0,
+    facing: team === 0 ? Math.PI / 2 : -Math.PI / 2,
+    charge: 0,
+    action: null,
+    receiveUntil: 0,
+  }));
+}
 export function movePlayer(
   p: Footballer,
   input: Pick<Input, "x" | "z" | "sprint">,

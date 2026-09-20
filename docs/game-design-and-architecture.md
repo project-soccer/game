@@ -8,9 +8,11 @@ The [ADR index](adr/README.md) records accepted decisions, rationale, alternativ
 
 ## Current work
 
+- [Development roadmap](roadmap.md): implementation stages and current exit criteria.
+- [Squad training](specifications/squad-training.md): eight footballers, initial teammate AI and goalkeeper behavior.
 - [Action laboratory](specifications/action-laboratory.md): setup, current scope, controls, limitations, and verification.
 - [Off-ball control experiment](specifications/off-ball-control.md): possession switches, pass requests, and playtest questions.
-- [First complete match](specifications/first-complete-match.md): the next milestone; not implemented by the laboratory.
+- [First complete match](specifications/first-complete-match.md): target scope; squad training is available, match lifecycle is next.
 - [Open questions](open-questions.md): decisions and evidence still required.
 - [Contributing](CONTRIBUTING.md): contribution and documentation workflow.
 

@@ -1,6 +1,6 @@
 # Action Laboratory
 
-Status: first experimental implementation. Architecture is recorded in the [ADR index](../adr/README.md). The [complete small match](first-complete-match.md) remains a later milestone.
+Status: implemented technical scenario. This page describes the original four-player practice pitch. The separate [squad-training mode](squad-training.md) adds eight footballers and initial AI. Architecture is recorded in the [ADR index](../adr/README.md); the [complete small match](first-complete-match.md) remains a later milestone.
 
 ## Start with Docker (primary path)
 

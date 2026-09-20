@@ -323,3 +323,6 @@ input:focus-visible {
   font-size: 12px;
   min-height: 2.5em;
 }
+#create {
+  margin-top: 10px;
+}

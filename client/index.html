@@ -4,6 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta name="theme-color" content="#101a23" />
+    <link rel="icon" href="/favicon.ico" sizes="16x16 32x32" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>Project Soccer — Action Laboratory</title>
   </head>
   <body>
@@ -23,7 +26,10 @@
       <p>
         A small pitch. A shared ball. The first step towards Project Soccer.
       </p>
-      <button id="create">Enter the practice pitch <span>↗</span></button>
+      <button id="create-squad">Train with 3 + keeper <span>↗</span></button>
+      <button id="create" class="quiet">
+        Enter the practice pitch <span>↗</span>
+      </button>
       <div class="join">
         <input
           id="room-id"
@@ -55,7 +61,7 @@
     <div id="score" hidden>
       <span class="cyan">BLUE</span><strong id="score-value">0 : 0</strong
       ><span class="orange">CORAL</span
-      ><small>SHOT PRACTICE · NO MATCH CLOCK</small>
+      ><small id="practice-mode">SHOT PRACTICE · NO MATCH CLOCK</small>
     </div>
     <footer>
       <div>

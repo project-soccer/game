@@ -3,11 +3,13 @@ import { Client, type Room } from "@colyseus/sdk";
 import {
   DT,
   PROTOCOL,
+  createRoster,
   movePlayer,
   neutral,
   type Footballer,
   type Input,
   type Snapshot,
+  type Scenario,
 } from "@project-soccer/game-core";
 import "./style.css";
 const el = <T extends HTMLElement>(id: string) =>
@@ -170,6 +172,7 @@ async function avatar(p: Footballer) {
   app.root.addChild(holder);
   avatars.set(p.id, { entity: holder, state: "" });
   const asset = await assetPromise;
+  if (avatars.get(p.id)?.entity !== holder) return;
   const resource = asset.resource as pc.ContainerResource & {
     animations: pc.Asset[];
   };
@@ -178,7 +181,15 @@ async function avatar(p: Footballer) {
   for (const comp of model.findComponents("render") as pc.RenderComponent[])
     for (const mi of comp.meshInstances)
       if (mi.material.name === "kit" || mi.material.name === "socks")
-        mi.material = material(p.team === 0 ? "#6cd8d2" : "#f69c7f");
+        mi.material = material(
+          p.role === "goalkeeper"
+            ? p.team === 0
+              ? "#f2cf83"
+              : "#bba1ef"
+            : p.team === 0
+              ? "#6cd8d2"
+              : "#f69c7f",
+        );
   model.addComponent("anim", { activate: true });
   const names = ["idle", "run", "sprint", "pass", "shot", "tackle", "receive"];
   model.anim!.loadStateGraph({
@@ -290,6 +301,10 @@ function receive(state: Snapshot) {
     el("error").textContent = "Build mismatch. Refresh both clients.";
     return;
   }
+  if ((snapshot?.scenario ?? "technical") !== state.scenario) {
+    for (const avatar of avatars.values()) avatar.entity.destroy();
+    avatars.clear();
+  }
   previous = snapshot;
   snapshot = state;
   receivedAt = performance.now();
@@ -345,6 +360,10 @@ function receive(state: Snapshot) {
     if (aiHasBall) aiCarrierIndicator.setPosition(carrier.x, 0, carrier.z);
   }
   el("score-value").textContent = `${state.goals[0]} : ${state.goals[1]}`;
+  el("practice-mode").textContent =
+    state.scenario === "squad"
+      ? "3 + KEEPER · TRAINING · NO MATCH CLOCK"
+      : "SHOT PRACTICE · NO MATCH CLOCK";
   el("status").textContent =
     Object.keys(state.controllers).length === 2
       ? "Two participants on the pitch."
@@ -359,8 +378,9 @@ function showError(error: unknown) {
   );
   el("connection").textContent = "Connection unavailable";
 }
-async function connect(id?: string) {
+async function connect(id?: string, scenario: Scenario = "technical") {
   el<HTMLButtonElement>("create").disabled = true;
+  el<HTMLButtonElement>("create-squad").disabled = true;
   el<HTMLButtonElement>("join").disabled = true;
   el("error").textContent = "";
   try {
@@ -374,7 +394,11 @@ async function connect(id?: string) {
     });
     room = id
       ? await client.joinById(id, { protocol: PROTOCOL })
-      : await client.create("laboratory", { protocol: PROTOCOL, mode: "team" });
+      : await client.create("laboratory", {
+          protocol: PROTOCOL,
+          mode: "team",
+          scenario,
+        });
     seq = 0;
     pending = [];
     room.onMessage("snapshot", receive);
@@ -397,10 +421,12 @@ async function connect(id?: string) {
     showError(error);
   } finally {
     el<HTMLButtonElement>("create").disabled = false;
+    el<HTMLButtonElement>("create-squad").disabled = false;
     el<HTMLButtonElement>("join").disabled = false;
   }
 }
 el("create").onclick = () => void connect();
+el("create-squad").onclick = () => void connect(undefined, "squad");
 el("join").onclick = () =>
   void connect(el<HTMLInputElement>("room-id").value.trim());
 el("reset").onclick = () => room?.send("reset");
@@ -420,23 +446,7 @@ if (requestedRoom) {
   el("join").textContent = "Join pitch";
 }
 setInterval(() => room?.send("ping", performance.now()), 1000);
-const preview: Footballer[] = [
-  [-5, 0, 0],
-  [3, -3, 0],
-  [5, 4, 1],
-  [-3, 5, 1],
-].map(([x, z, team], id) => ({
-  id,
-  team,
-  x,
-  z,
-  vx: 0,
-  vz: 0,
-  facing: team === 0 ? Math.PI / 2 : -Math.PI / 2,
-  charge: 0,
-  action: null,
-  receiveUntil: 0,
-}));
+const preview = createRoster("technical");
 for (const p of preview) void avatar(p).catch(showError);
 let renderedTick = 0;
 app.on("update", (delta: number) => {

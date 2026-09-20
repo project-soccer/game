@@ -23,12 +23,14 @@ try {
       viewport: { width: 1440, height: 1000 },
     });
     const page = await context.newPage();
+    page.setDefaultTimeout(20000);
     page.on("pageerror", (e) => errors.push(e.message));
     pages.push(page);
   }
   const [a, b] = pages;
   await a.goto(process.env.CLIENT_URL ?? "http://127.0.0.1:5173/");
   await a.waitForFunction(() => window.soccerLab?.rigsReady === 4);
+  console.log("Browser check: technical pitch loaded");
   await a.screenshot({ path: "test-results/lobby.png" });
   await a.getByRole("button", { name: "Enter the practice pitch" }).click();
   await a.waitForFunction(() => !!window.soccerLab?.snapshot);
@@ -42,16 +44,17 @@ try {
       Object.keys(window.soccerLab?.snapshot?.controllers ?? {}).length === 2,
   );
   await a.bringToFront();
+  console.log("Browser check: both participants joined");
   const start = await a.evaluate(() => window.soccerLab.predicted.x);
   await a.keyboard.down("KeyD");
-  await a.waitForTimeout(400);
-  const pose = await a.evaluate(() => window.soccerLab.poses);
-  assert.ok(
-    pose.some((p) => p.state === "run" && Math.abs(p.leg) > 0.01),
-    "skeletal locomotion must animate",
+  await a.waitForFunction(() =>
+    window.soccerLab.poses.some(
+      (p) => p.state === "run" && Math.abs(p.leg) > 0.01,
+    ),
   );
-  await a.keyboard.up("KeyD");
   await a.waitForFunction((x) => window.soccerLab.predicted.x > x + 0.3, start);
+  await a.keyboard.up("KeyD");
+  console.log("Browser check: locomotion rendered");
   await a.getByRole("button", { name: "Reset the exercise" }).click();
   await a.waitForTimeout(200);
   await a.keyboard.down("KeyK");
@@ -106,6 +109,24 @@ try {
   console.log(
     "PASS: two browser contexts, animated pitch, movement, shared shot, off-ball switch/run/request, AI pass and controlled reception.",
   );
+} catch (error) {
+  for (const [index, page] of pages.entries()) {
+    console.log(
+      "Failure diagnostics",
+      index,
+      await page
+        .evaluate(() => ({
+          focus: document.hasFocus(),
+          hidden: document.hidden,
+          lab: window.soccerLab,
+        }))
+        .catch(() => null),
+    );
+    await page
+      .screenshot({ path: `test-results/failure-${index}.png`, timeout: 5000 })
+      .catch(() => {});
+  }
+  throw error;
 } finally {
   await browser.close();
 }
