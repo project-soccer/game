@@ -1,0 +1,89 @@
+name: project-soccer
+x-development: &development
+  image: project-soccer-dev
+  build:
+    context: .
+    dockerfile: Dockerfile.dev
+    target: development
+  working_dir: /workspace
+  init: true
+  volumes:
+    - .:/workspace
+    - root-dependencies:/workspace/node_modules
+    - client-dependencies:/workspace/client/node_modules
+    - server-dependencies:/workspace/server/node_modules
+    - core-dependencies:/workspace/packages/game-core/node_modules
+    - package-store:/pnpm/store
+  environment:
+    CI: "true"
+services:
+  dependencies:
+    <<: *development
+    command: pnpm install --store-dir /pnpm/store --frozen-lockfile
+  server:
+    <<: *development
+    depends_on:
+      dependencies:
+        condition: service_completed_successfully
+    command: npm --prefix server run dev
+    environment:
+      HOST: 0.0.0.0
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "const s=require('net').connect(2567,'127.0.0.1',()=>{s.end();process.exit(0)});s.on('error',()=>process.exit(1))",
+        ]
+      interval: 3s
+      timeout: 2s
+      retries: 20
+  client:
+    <<: *development
+    depends_on:
+      server:
+        condition: service_healthy
+    command: npm --prefix client run dev -- --host 0.0.0.0
+    environment:
+      GAME_SERVER_HTTP: http://server:2567
+    ports:
+      - "127.0.0.1:5173:5173"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:5173').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 3s
+      timeout: 2s
+      retries: 20
+  checks:
+    <<: *development
+    profiles: ["tools"]
+    depends_on:
+      dependencies:
+        condition: service_completed_successfully
+    command: sh -c "npm run typecheck && npm test && npm run build"
+  browser-tests:
+    <<: *development
+    image: project-soccer-browser-tests
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: browser-tests
+    profiles: ["browser"]
+    depends_on:
+      client:
+        condition: service_healthy
+    environment:
+      CLIENT_URL: http://client:5173/
+    command: npm run test:browser
+volumes:
+  root-dependencies:
+  client-dependencies:
+  server-dependencies:
+  core-dependencies:
+  package-store:

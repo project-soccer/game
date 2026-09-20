@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#101a23" />
+    <title>Project Soccer — Action Laboratory</title>
+  </head>
+  <body>
+    <canvas
+      id="game"
+      aria-label="Project Soccer 3D football practice pitch"
+    ></canvas>
+    <header>
+      <a class="wordmark" href="/"
+        >PROJECT <span>SOCCER</span><small>ACTION LABORATORY · 001</small></a
+      >
+      <div class="live"><i></i><span id="connection">Not connected</span></div>
+    </header>
+    <main id="lobby" class="panel">
+      <span class="eyebrow">THE FIRST TOUCH</span>
+      <h1>Every match<br />starts here.</h1>
+      <p>
+        A small pitch. A shared ball. The first step towards Project Soccer.
+      </p>
+      <button id="create">Enter the practice pitch <span>↗</span></button>
+      <div class="join">
+        <input
+          id="room-id"
+          aria-label="Room code"
+          placeholder="Have a room code?"
+          maxlength="32"
+        /><button id="join">Join</button>
+      </div>
+      <p id="error" role="alert"></p>
+      <small>Early experiment · two participants · no stakes</small>
+    </main>
+    <aside id="session" class="panel" hidden>
+      <span class="eyebrow">PRIVATE PRACTICE</span>
+      <div class="session-title">
+        <h2 id="team">Your team</h2>
+        <button id="invite" title="Copy invite link">Invite ↗</button>
+      </div>
+      <p id="room-label"></p>
+      <p id="status">Preparing the pitch…</p>
+      <div class="meter">
+        <span>SHOT POWER</span
+        ><progress id="power" max="1" value="0"></progress>
+      </div>
+      <button id="reset" class="quiet">Reset the exercise <kbd>R</kbd></button
+      ><small id="network">Connecting…</small>
+    </aside>
+    <div id="score" hidden>
+      <span class="cyan">BLUE</span><strong id="score-value">0 : 0</strong
+      ><span class="orange">CORAL</span
+      ><small>SHOT PRACTICE · NO MATCH CLOCK</small>
+    </div>
+    <footer>
+      <div>
+        <span class="key">WASD / L stick</span> Move
+        <span class="key">Shift / RT</span> Sprint
+        <span class="key">J / A</span> Pass
+        <span class="key">Hold K / B</span> Shoot
+        <span class="key">L / X</span> Tackle
+        <span class="key">Q / LB</span> Switch
+      </div>
+      <small id="device">Keyboard ready · connect a gamepad to play</small>
+    </footer>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "@project-soccer/server",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@project-soccer/game-core": "workspace:*",
+    "@colyseus/core": "0.18.14",
+    "@colyseus/ws-transport": "0.18.2",
+    "express": "^5.1.0"
+  }
+}

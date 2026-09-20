@@ -1,19 +1,7 @@
 # Project Soccer — Client
 
-Planned browser game client for [Project Soccer](https://github.com/project-soccer).
+PlayCanvas/Vite browser client for the action laboratory. It renders the original GLB footballers, collects keyboard/gamepad intent, predicts local movement, displays authoritative ball state, and presents private-room controls.
 
-## Responsibility
+Use the root [setup guide](../docs/specifications/action-laboratory.md). The client connects through Vite's same-origin matchmaking/WebSocket proxy. It never authorizes goals or supplies trusted ball coordinates.
 
-Render the pitch and footballers, collect keyboard/gamepad input, manage camera and audio, predict local actions, reconcile authoritative updates, and present match and account interfaces.
-
-## Boundaries
-
-Consume declared workspace simulation and protocol dependencies from `../packages/game-core` in the same game repository. The server decides movement validity, possession, goals, and results. Do not embed financial signing keys or duplicate server authority in the client.
-
-Human 1v1 requires team switching; future human 11v11 assigns one footballer per participant. Preserve both control models in the design.
-
-## Status
-
-Planning only. This module belongs to the approved `project-soccer/game` repository; the public repository exists, but no runnable game has been created. Renderer and dependency choices remain proposals in [Game Design and Architecture](../docs/game-design-and-architecture.md). Licensing is undecided.
-
-All documentation must be written in English.
+The full match, production ball prediction, remapping interface, and final character art are not implemented. Decisions live in the [ADR index](../docs/adr/README.md). All documentation is English.

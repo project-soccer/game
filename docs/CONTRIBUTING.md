@@ -6,15 +6,15 @@ Project Soccer is currently maintained by its founder with Codex. The three repo
 
 Write documentation, issue descriptions, pull-request explanations, architecture decisions, and release notes in English. Use clear language and distinguish implemented features from proposals.
 
-The canonical cross-project specification is [Game Design and Architecture](game-design-and-architecture.md). Keep implementation-specific setup instructions in the repository that owns the implementation.
+Use the [ADR index](adr/README.md) for important decisions, [specifications](specifications/action-laboratory.md) for current behavior, and the [project map](game-design-and-architecture.md) for navigation. Keep the archived review historical.
 
 ## Design contributions
 
-Identify the problem, affected decision IDs, proposed behavior, alternatives, and validation needed. Do not mark a founder decision as confirmed without explicit agreement. Record experimental findings with versions, environment, parameters, and limitations.
+Use the ADR template to identify the problem, affected ADRs, proposed behavior, alternatives, consequences, and validation needed. New decisions start as Proposed; material reversals supersede an existing ADR rather than silently rewriting its rationale. Do not mark a founder decision as confirmed without explicit agreement. Record experimental findings with versions, environment, parameters, and limitations.
 
 ## Future code contributions
 
-Once repositories and implementation work are available, prefer small changes with a clear purpose and relevant validation. Keep related client, server, and shared simulation changes together in one game pull request. Changes affecting contracts must also identify artifact versions and cross-repository compatibility effects. Do not copy shared simulation or protocol code between repositories.
+Prefer small changes with a clear purpose and relevant validation. The action laboratory is available; the complete match remains a later milestone. Keep related client, server, and shared simulation changes together in one game pull request. Changes affecting contracts must also identify artifact versions and cross-repository compatibility effects. Do not copy shared simulation or protocol code between repositories.
 
 The founder reviews contributions and makes release decisions. Community participation is welcome as a direction, but no contributor capacity or review turnaround is promised.
 

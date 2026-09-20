@@ -1,0 +1,17 @@
+{
+  "name": "@project-soccer/client",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@project-soccer/game-core": "workspace:*",
+    "@colyseus/sdk": "0.18.2",
+    "playcanvas": "2.22.2"
+  },
+  "devDependencies": {
+    "vite": "8.3.0"
+  }
+}
