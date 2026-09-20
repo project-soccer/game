@@ -1,6 +1,6 @@
 # First Complete Match — Next Milestone
 
-Status: accepted initial scope; **not yet a complete match**. The roster and initial teammate/keeper AI are available in [squad training](squad-training.md). Clock, restarts, completion and rematch are next in the [roadmap](../roadmap.md). See ADR 0006 in the [decision index](../adr/README.md).
+Status: accepted initial scope; **not yet a complete match**. The roster and initial teammate/keeper AI are available in [squad training](squad-training.md). The founder has prioritized the character and movement quality proof before implementing clock, restarts, completion and rematch; see the [roadmap](../roadmap.md). See ADR 0006 in the [decision index](../adr/README.md).
 
 - Two human participants, each switching among three outfield footballers; one AI goalkeeper per side.
 - Initial 40 × 26 m pitch and four-minute period, both tunable after playtests.
