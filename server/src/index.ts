@@ -19,8 +19,13 @@ class Laboratory extends Room {
       throw new Error("Client/server versions differ. Refresh both clients.");
     this.sim = new Simulation(
       options.mode === "individual" ? "individual" : "team",
-      options.scenario === "squad" ? "squad" : "technical",
+      options.scenario === "motion"
+        ? "motion"
+        : options.scenario === "squad"
+          ? "squad"
+          : "technical",
     );
+    if (options.scenario === "motion") this.maxClients = 1;
     await this.setPrivate(true);
     this.onMessage("input", (client, value: unknown) => {
       const limit = this.limits.get(client.sessionId);

@@ -1,4 +1,4 @@
-export const PROTOCOL = "soccer-lab-3";
+export const PROTOCOL = "soccer-lab-4";
 export const DT = 1 / 60;
 export const BALL_RADIUS = 0.11;
 export const PITCH = {
@@ -8,7 +8,7 @@ export const PITCH = {
   goalHeight: 2,
 };
 export type Mode = "team" | "individual";
-export type Scenario = "technical" | "squad";
+export type Scenario = "technical" | "squad" | "motion";
 export type ActionName = "pass" | "shot" | "tackle" | "receive";
 export type Input = {
   seq: number;
@@ -86,6 +86,15 @@ export type Action = {
   power: number;
   target: number | null;
 };
+export type BallTouch = {
+  start: number;
+  contact: number;
+  end: number;
+  x: number;
+  y: number;
+  z: number;
+  foot: "L" | "R";
+};
 export type Footballer = {
   id: number;
   team: number;
@@ -98,6 +107,9 @@ export type Footballer = {
   charge: number;
   action: Action | null;
   receiveUntil: number;
+  touch: BallTouch | null;
+  gait: number;
+  motion: boolean;
 };
 export type Controller = {
   team: number;
@@ -142,36 +154,75 @@ export function createRoster(scenario: Scenario): Footballer[] {
           [5, 4, 1],
           [-3, 5, 1],
         ];
-  return positions.map(([x, z, team], id) => ({
-    id,
-    team,
-    role:
-      scenario === "squad" && (id === 3 || id === 7)
-        ? "goalkeeper"
-        : "outfield",
-    x,
-    z,
-    vx: 0,
-    vz: 0,
-    facing: team === 0 ? Math.PI / 2 : -Math.PI / 2,
-    charge: 0,
-    action: null,
-    receiveUntil: 0,
-  }));
+  return (scenario === "motion" ? [[-5, 0, 0]] : positions).map(
+    ([x, z, team], id) => ({
+      id,
+      team,
+      role:
+        scenario === "squad" && (id === 3 || id === 7)
+          ? "goalkeeper"
+          : "outfield",
+      x,
+      z,
+      vx: 0,
+      vz: 0,
+      facing: team === 0 ? Math.PI / 2 : -Math.PI / 2,
+      charge: 0,
+      action: null,
+      receiveUntil: 0,
+      touch: null,
+      gait: 0,
+      motion: scenario === "motion",
+    }),
+  );
 }
+export function analogStick(x: number, z: number, deadZone = 0.14) {
+  if (!Number.isFinite(x) || !Number.isFinite(z)) return { x: 0, z: 0 };
+  const radius = Math.hypot(x, z),
+    threshold = Math.max(0, Math.min(0.4, deadZone));
+  if (radius <= threshold) return { x: 0, z: 0 };
+  const magnitude = Math.min(1, (radius - threshold) / (1 - threshold));
+  return { x: (x / radius) * magnitude, z: (z / radius) * magnitude };
+}
+export const strideLength = (speed: number) => 1.2 + Math.min(7, speed) * 0.23;
 export function movePlayer(
   p: Footballer,
   input: Pick<Input, "x" | "z" | "sprint">,
   dt = DT,
 ) {
+  const beforeX = p.x,
+    beforeZ = p.z;
   const n = Math.max(1, Math.hypot(input.x, input.z));
-  const speed = p.action ? 1.6 : input.sprint ? 7 : 4.8;
-  const tx = (input.x / n) * speed,
+  let speed = p.action ? 1.6 : input.sprint ? 7 : 4.8;
+  let tx = (input.x / n) * speed,
     tz = (input.z / n) * speed;
+  if (p.motion && !p.action && Math.hypot(input.x, input.z) > 0.01) {
+    const desired = Math.atan2(input.x, input.z);
+    const diff = Math.atan2(
+      Math.sin(desired - p.facing),
+      Math.cos(desired - p.facing),
+    );
+    const turn = (input.sprint ? 6 : 9) * dt;
+    p.facing += Math.max(-turn, Math.min(turn, diff));
+    const magnitude = Math.min(1, Math.hypot(input.x, input.z));
+    speed = input.sprint
+      ? 7 * magnitude
+      : magnitude < 0.55
+        ? (magnitude / 0.55) * 2
+        : 2 + ((magnitude - 0.55) / 0.45) * 2.8;
+    speed *= 0.2 + 0.8 * Math.max(0, Math.cos(diff));
+    tx = Math.sin(p.facing) * speed;
+    tz = Math.cos(p.facing) * speed;
+  }
   const ax = tx - p.vx,
     az = tz - p.vz,
     delta = Math.hypot(ax, az),
-    max = 22 * dt;
+    max =
+      (p.motion
+        ? Math.hypot(tx, tz) < Math.hypot(p.vx, p.vz)
+          ? 25
+          : 16
+        : 22) * dt;
   if (delta > 0) {
     const f = Math.min(1, max / delta);
     p.vx += ax * f;
@@ -179,7 +230,10 @@ export function movePlayer(
   }
   p.x = Math.max(-19.3, Math.min(19.3, p.x + p.vx * dt));
   p.z = Math.max(-12.3, Math.min(12.3, p.z + p.vz * dt));
-  if (!p.action && Math.hypot(input.x, input.z) > 0.1) {
+  p.gait +=
+    Math.hypot(p.x - beforeX, p.z - beforeZ) /
+    strideLength(Math.hypot(p.vx, p.vz));
+  if (!p.motion && !p.action && Math.hypot(input.x, input.z) > 0.1) {
     const desired = Math.atan2(input.x, input.z);
     const diff = Math.atan2(
       Math.sin(desired - p.facing),

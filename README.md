@@ -12,6 +12,8 @@ Open http://localhost:5173, enter the practice pitch, and use **Invite** to shar
 
 See the [laboratory specification](docs/specifications/action-laboratory.md) for controls, checks, optional local setup, and limitations.
 
+Choose **Character & movement study** for the new [solo quality proof](docs/specifications/character-motion.md): a detailed footballer, proportional stick movement, adjustable dead zone and close inspection camera. This is the current priority; appearance and physical-pad feel await hands-on approval.
+
 Choose **Train with 3 + keeper** for the new [eight-player training mode](docs/specifications/squad-training.md), with initial support/pressure AI and keeper control, parries and distribution. The original practice pitch remains available for isolated action tests.
 
 Try the [off-ball control experiment](docs/specifications/off-ball-control.md): Q / LB switches away from possession; move your receiver and press J / A to request a ground pass from the AI carrier. The pass can miss or be intercepted. This mechanic is provisional and needs gameplay feedback.
@@ -35,4 +37,4 @@ Try the [off-ball control experiment](docs/specifications/off-ball-control.md): 
 | [packages/game-core](packages/game-core/README.md) | Shared protocol/movement and headless Rapier simulation |
 | [docs](docs/README.md) | ADRs, specifications, open questions, and historical research |
 
-The original test model has nine joints and seven clips, generated from editable source. Animation polish, actual gamepad validation, real-network quality, improved tactics/keeper behavior, complete match rules, and economic integration remain future work. Software and asset licensing remain undecided. All documentation is English.
+The original laboratories use a nine-joint test model. The new solo study uses a detailed CC0 graphical base with original procedural motion; see [asset notices](THIRD_PARTY_ASSETS.md). Animation polish, actual gamepad validation, real-network quality, improved tactics/keeper behavior, complete match rules, and economic integration remain future work. The general project license remains undecided. All documentation is English.

@@ -10,10 +10,11 @@
     "dev": "concurrently -k -n server,client \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
     "build": "npm run typecheck && npm --prefix client run build",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test tests/*.test.ts",
+    "test": "node --import tsx --test tests/*.test.ts client/src/*.test.ts",
     "test:network": "node --import tsx tests/network-smoke.ts",
-    "test:browser": "node tests/browser-smoke.mjs && node tests/squad-browser.mjs",
+    "test:browser": "node tests/browser-smoke.mjs && node tests/squad-browser.mjs && node tests/motion-browser.mjs",
     "assets:player": "node scripts/build-player.mjs",
+    "assets:detail": "node scripts/build-detailed-player.mjs",
     "format": "prettier --write \"client/src/**/*.{ts,css}\" \"client/*.{html,ts}\" \"server/src/**/*.ts\" \"packages/*/src/**/*.ts\" \"scripts/*.mjs\" \"tests/*.{ts,mjs}\" \"*.{json,yaml}\" \"{client,server,packages/game-core}/package.json\""
   },
   "devDependencies": {

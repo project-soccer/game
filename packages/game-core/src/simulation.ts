@@ -9,6 +9,7 @@ import {
   movePlayer,
   neutral,
   parseInput,
+  strideLength,
   type ActionName,
   type Controller,
   type Footballer,
@@ -123,7 +124,8 @@ export class Simulation {
     this.emit("reset", -1);
   }
   addController(id: string) {
-    if (this.slots.size >= 2) throw new Error("Laboratory is full");
+    if (this.slots.size >= (this.scenario === "motion" ? 1 : 2))
+      throw new Error("Laboratory is full");
     const team = [0, 1].find(
       (t) => ![...this.slots.values()].some((s) => s.controller.team === t),
     )!;
@@ -166,6 +168,7 @@ export class Simulation {
   private switchTo(slot: Slot, id: number) {
     if (
       this.mode === "individual" ||
+      id === slot.controller.player ||
       this.players[id]?.team !== slot.controller.team ||
       this.players[id]?.role === "goalkeeper"
     )
@@ -458,6 +461,7 @@ export class Simulation {
         }
     }
     const delay = name === "tackle" ? 8 : name === "pass" ? 10 : 14;
+    p.touch = null;
     p.action = {
       name,
       start: this.tick,
@@ -640,11 +644,67 @@ export class Simulation {
         this.emit("receive", p.id);
       }
     }
+    for (const p of this.players) {
+      if (
+        p.touch &&
+        (this.owner !== p.id || p.action || this.tick > p.touch.end)
+      )
+        p.touch = null;
+    }
     if (this.owner !== null) {
       const p = this.players[this.owner],
         i = inputs.get(p.id) ?? neutral();
-      if (!p.action && this.tick - this.touchTick >= (i.sprint ? 14 : 10)) {
-        const reach = i.sprint ? 0.85 : 0.6;
+      const moving = Math.hypot(p.vx, p.vz);
+      const reach = i.sprint ? 0.85 : 0.6;
+      const interval = p.motion
+        ? Math.max(
+            14,
+            Math.min(
+              28,
+              Math.round(strideLength(moving) / Math.max(1, moving) / DT / 2),
+            ),
+          )
+        : i.sprint
+          ? 14
+          : 10;
+      if (
+        p.motion &&
+        !p.action &&
+        !p.touch &&
+        this.tick - this.touchTick >= interval - 6
+      ) {
+        const error = Math.hypot(
+          p.x + Math.sin(p.facing) * reach - b.x,
+          p.z + Math.cos(p.facing) * reach - b.z,
+        );
+        if (moving > 0.15 || error > 0.08) {
+          const v = this.ball.linvel();
+          const localX =
+            (b.x - p.x) * Math.cos(p.facing) - (b.z - p.z) * Math.sin(p.facing);
+          p.touch = {
+            start: this.tick,
+            contact: this.tick + 6,
+            end: this.tick + 13,
+            x: b.x + v.x * 6 * DT,
+            y: b.y,
+            z: b.z + v.z * 6 * DT,
+            foot: localX > 0 ? "L" : "R",
+          };
+        }
+      }
+      const due = p.motion
+        ? p.touch?.contact === this.tick
+        : this.tick - this.touchTick >= interval;
+      if (
+        !p.action &&
+        due &&
+        (!p.motion || Math.hypot(b.x - p.x, b.z - p.z) < 1.05)
+      ) {
+        if (p.touch) {
+          p.touch.x = b.x;
+          p.touch.y = b.y;
+          p.touch.z = b.z;
+        }
         const vx = (p.x + Math.sin(p.facing) * reach - b.x) * 7 + p.vx,
           vz = (p.z + Math.cos(p.facing) * reach - b.z) * 7 + p.vz;
         const mag = Math.max(1, Math.hypot(vx, vz) / 10);
@@ -678,6 +738,7 @@ export class Simulation {
       players: this.players.map((p) => ({
         ...p,
         action: p.action ? { ...p.action } : null,
+        touch: p.touch ? { ...p.touch } : null,
       })),
       ball: { ...b, vx: v.x, vy: v.y, vz: v.z },
       owner: this.owner,

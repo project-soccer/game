@@ -9,6 +9,7 @@ The [ADR index](adr/README.md) records accepted decisions, rationale, alternativ
 ## Current work
 
 - [Development roadmap](roadmap.md): implementation stages and current exit criteria.
+- [Character and movement study](specifications/character-motion.md): detailed solo model, analog movement and ball contact quality proof.
 - [Squad training](specifications/squad-training.md): eight footballers, initial teammate AI and goalkeeper behavior.
 - [Action laboratory](specifications/action-laboratory.md): setup, current scope, controls, limitations, and verification.
 - [Off-ball control experiment](specifications/off-ball-control.md): possession switches, pass requests, and playtest questions.

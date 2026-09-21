@@ -326,3 +326,21 @@ input:focus-visible {
 #create {
   margin-top: 10px;
 }
+#create-squad {
+  margin-top: 10px;
+}
+#motion-tools {
+  font-size: 12px;
+}
+#motion-tools label {
+  display: block;
+  margin-top: 14px;
+}
+#motion-tools input {
+  width: 100%;
+  accent-color: #6cd8d2;
+}
+#motion-tools small {
+  display: block;
+  margin: 8px 0;
+}

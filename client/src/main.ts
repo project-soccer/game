@@ -4,6 +4,7 @@ import {
   DT,
   PROTOCOL,
   createRoster,
+  analogStick,
   movePlayer,
   neutral,
   type Footballer,
@@ -12,6 +13,7 @@ import {
   type Scenario,
 } from "@project-soccer/game-core";
 import "./style.css";
+import { CharacterMotion } from "./character-motion.ts";
 const el = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T;
 const canvas = el<HTMLCanvasElement>("game");
@@ -160,7 +162,10 @@ const aiCarrierIndicator = ring(
   material("#f2cf83"),
 );
 aiCarrierIndicator.enabled = false;
-const avatars = new Map<number, { entity: pc.Entity; state: string }>();
+const avatars = new Map<
+  number,
+  { entity: pc.Entity; state: string; motion?: CharacterMotion }
+>();
 const assetPromise = new Promise<pc.Asset>((resolve, reject) =>
   app.assets.loadFromUrl("/assets/footballer.glb", "container", (err, asset) =>
     err ? reject(err) : resolve(asset!),
@@ -171,13 +176,21 @@ async function avatar(p: Footballer) {
   const holder = new pc.Entity(`footballer-${p.id}`);
   app.root.addChild(holder);
   avatars.set(p.id, { entity: holder, state: "" });
-  const asset = await assetPromise;
+  const asset = await (p.motion ? loadDetailedAsset() : assetPromise);
   if (avatars.get(p.id)?.entity !== holder) return;
   const resource = asset.resource as pc.ContainerResource & {
     animations: pc.Asset[];
   };
   const model = resource.instantiateRenderEntity();
   holder.addChild(model);
+  if (p.motion) {
+    avatars.set(p.id, {
+      entity: holder,
+      state: "idle",
+      motion: new CharacterMotion(model),
+    });
+    return;
+  }
   for (const comp of model.findComponents("render") as pc.RenderComponent[])
     for (const mi of comp.meshInstances)
       if (mi.material.name === "kit" || mi.material.name === "socks")
@@ -215,6 +228,16 @@ async function avatar(p: Footballer) {
   }
   avatars.set(p.id, { entity: holder, state: "idle" });
 }
+let detailAsset: Promise<pc.Asset> | undefined;
+function loadDetailedAsset() {
+  return (detailAsset ??= new Promise<pc.Asset>((resolve, reject) =>
+    app.assets.loadFromUrl(
+      "/assets/footballer-detail.glb",
+      "container",
+      (err, asset) => (err ? reject(err) : resolve(asset!)),
+    ),
+  ));
+}
 let room: Room | undefined,
   snapshot: Snapshot | undefined,
   predicted: Footballer | undefined;
@@ -230,6 +253,11 @@ let tapped = new Set<string>();
 let wasShoot = false;
 let gamepadPrevious: boolean[] = [];
 let cancelRequested = false;
+let closeCamera = true;
+let previousCloseView: boolean | undefined;
+el("view").onclick = () => {
+  closeCamera = !closeCamera;
+};
 window.addEventListener("keydown", (e) => {
   if ((e.target as HTMLElement).tagName === "INPUT") return;
   if (
@@ -241,6 +269,7 @@ window.addEventListener("keydown", (e) => {
   if (!keys.has(e.code)) tapped.add(e.code);
   keys.add(e.code);
   if (e.code === "KeyR" && !e.repeat) room?.send("reset");
+  if (e.code === "KeyV" && !e.repeat) closeCamera = !closeCamera;
 });
 window.addEventListener("keyup", (e) => keys.delete(e.code));
 function clearInput() {
@@ -271,10 +300,14 @@ function sample(assignment: number): Input {
           .find((p) => p?.connected && p.mapping === "standard")
       : undefined;
   if (pad) {
-    const buttons = pad.buttons.map((b) => b.pressed),
-      axis = (v: number) => (Math.abs(v) > 0.18 ? v : 0);
-    i.x = axis(pad.axes[0] ?? 0);
-    i.z = axis(pad.axes[1] ?? 0);
+    const buttons = pad.buttons.map((b) => b.pressed);
+    const stick = analogStick(
+      pad.axes[0] ?? 0,
+      pad.axes[1] ?? 0,
+      Number(el<HTMLInputElement>("dead-zone").value),
+    );
+    i.x = stick.x;
+    i.z = stick.z;
     i.sprint = buttons[7];
     i.pass ||= buttons[0] && !gamepadPrevious[0];
     i.tackle ||= buttons[2] && !gamepadPrevious[2];
@@ -293,6 +326,8 @@ function sample(assignment: number): Input {
   const length = Math.max(1, Math.hypot(i.x, i.z));
   i.x /= length;
   i.z /= length;
+  el("stick-value").textContent =
+    `Stick ${Math.round(Math.hypot(i.x, i.z) * 100)}% · dead zone ${Math.round(Number(el<HTMLInputElement>("dead-zone").value) * 100)}%`;
   return i;
 }
 function receive(state: Snapshot) {
@@ -305,6 +340,8 @@ function receive(state: Snapshot) {
     for (const avatar of avatars.values()) avatar.entity.destroy();
     avatars.clear();
   }
+  el("invite").hidden = state.scenario === "motion";
+  el("motion-tools").hidden = state.scenario !== "motion";
   previous = snapshot;
   snapshot = state;
   receivedAt = performance.now();
@@ -333,11 +370,15 @@ function receive(state: Snapshot) {
       carrier.id !== control.player &&
       !Object.values(state.controllers).some((c) => c.player === carrier.id);
     el("possession").textContent =
-      carrier?.id === control.player
-        ? "On the ball · J / A to pass. Q / LB to make an off-ball run."
-        : aiHasBall
-          ? "Off the ball · move into space, then J / A to call. Gold ring: AI carrier."
-          : "Win possession to pass. Q / LB switches your footballer.";
+      state.scenario === "motion"
+        ? carrier?.id === control.player
+          ? "On the ball · A to pass, hold and release B to shoot."
+          : "Chase the ball to recover it, or reset the exercise."
+        : carrier?.id === control.player
+          ? "On the ball · J / A to pass. Q / LB to make an off-ball run."
+          : aiHasBall
+            ? "Off the ball · move into space, then J / A to call. Gold ring: AI carrier."
+            : "Win possession to pass. Q / LB switches your footballer.";
     const feedback = [...state.events]
       .reverse()
       .find(
@@ -361,13 +402,17 @@ function receive(state: Snapshot) {
   }
   el("score-value").textContent = `${state.goals[0]} : ${state.goals[1]}`;
   el("practice-mode").textContent =
-    state.scenario === "squad"
-      ? "3 + KEEPER · TRAINING · NO MATCH CLOCK"
-      : "SHOT PRACTICE · NO MATCH CLOCK";
+    state.scenario === "motion"
+      ? "CHARACTER & MOVEMENT STUDY"
+      : state.scenario === "squad"
+        ? "3 + KEEPER · TRAINING · NO MATCH CLOCK"
+        : "SHOT PRACTICE · NO MATCH CLOCK";
   el("status").textContent =
-    Object.keys(state.controllers).length === 2
-      ? "Two participants on the pitch."
-      : "Practice solo, or invite a second player.";
+    state.scenario === "motion"
+      ? "Solo study · move, stop, turn and control the ball."
+      : Object.keys(state.controllers).length === 2
+        ? "Two participants on the pitch."
+        : "Practice solo, or invite a second player.";
   el("network").textContent =
     `${Math.round(rtt)} ms round trip · correction ${correction.toFixed(2)} m`;
   for (const p of state.players) void avatar(p).catch(showError);
@@ -381,10 +426,11 @@ function showError(error: unknown) {
 async function connect(id?: string, scenario: Scenario = "technical") {
   el<HTMLButtonElement>("create").disabled = true;
   el<HTMLButtonElement>("create-squad").disabled = true;
+  el<HTMLButtonElement>("create-motion").disabled = true;
   el<HTMLButtonElement>("join").disabled = true;
   el("error").textContent = "";
   try {
-    await assetPromise;
+    await (scenario === "motion" ? loadDetailedAsset() : assetPromise);
     const client = new Client(location.origin, {
       urlBuilder: (url) => {
         if (url.protocol === "ws:" || url.protocol === "wss:")
@@ -422,11 +468,13 @@ async function connect(id?: string, scenario: Scenario = "technical") {
   } finally {
     el<HTMLButtonElement>("create").disabled = false;
     el<HTMLButtonElement>("create-squad").disabled = false;
+    el<HTMLButtonElement>("create-motion").disabled = false;
     el<HTMLButtonElement>("join").disabled = false;
   }
 }
 el("create").onclick = () => void connect();
 el("create-squad").onclick = () => void connect(undefined, "squad");
+el("create-motion").onclick = () => void connect(undefined, "motion");
 el("join").onclick = () =>
   void connect(el<HTMLInputElement>("room-id").value.trim());
 el("reset").onclick = () => room?.send("reset");
@@ -465,7 +513,21 @@ app.on("update", (delta: number) => {
     }
   }
   const alpha = Math.min(1, (performance.now() - receivedAt) / 50);
-  renderedTick = snapshot ? snapshot.tick + alpha * 3 : 0;
+  renderedTick = snapshot
+    ? (previous?.tick ?? snapshot.tick) +
+      alpha * (snapshot.tick - (previous?.tick ?? snapshot.tick))
+    : 0;
+  const currentBall = snapshot?.ball;
+  const pastBall = previous?.ball ?? currentBall;
+  const visualBall =
+    currentBall && pastBall
+      ? {
+          ...currentBall,
+          x: pastBall.x + (currentBall.x - pastBall.x) * alpha,
+          y: pastBall.y + (currentBall.y - pastBall.y) * alpha,
+          z: pastBall.z + (currentBall.z - pastBall.z) * alpha,
+        }
+      : undefined;
   for (const p of snapshot?.players ?? preview) {
     const av = avatars.get(p.id);
     if (!av) continue;
@@ -479,6 +541,19 @@ app.on("update", (delta: number) => {
       ((local?.facing ?? p.facing) * 180) / Math.PI,
       0,
     );
+    if (av.motion && visualBall) {
+      av.motion.update(
+        local ?? p,
+        renderedTick,
+        dt,
+        visualBall,
+        snapshot?.owner ?? null,
+      );
+      av.state = av.motion.state;
+      el("motion-state").textContent =
+        `${av.state} · ${Math.hypot(p.vx, p.vz).toFixed(1)} m/s`;
+      continue;
+    }
     const model = av.entity.children[0] as pc.Entity | undefined;
     const anim = model?.anim?.baseLayer;
     if (anim) {
@@ -527,13 +602,18 @@ app.on("update", (delta: number) => {
       20,
       Math.max(17, Math.min(29, tz + 24)),
     );
+    const close = snapshot?.scenario === "motion" && closeCamera;
+    if (close) target.set(predicted.x + 3.2, 3.0, predicted.z + 4.5);
+    if (previousCloseView !== close) camera.setPosition(target);
+    previousCloseView = close;
     camera.setPosition(
       camera
         .getPosition()
         .clone()
         .lerp(camera.getPosition(), target, 1 - Math.exp(-dt * 2)),
     );
-    camera.lookAt(camera.getPosition().x, 0, camera.getPosition().z - 24);
+    if (close) camera.lookAt(predicted.x, 0.95, predicted.z);
+    else camera.lookAt(camera.getPosition().x, 0, camera.getPosition().z - 24);
   }
 });
 // Read-only diagnostics for reproducible browser tests and manual inspection.
@@ -544,14 +624,21 @@ Object.defineProperty(window, "soccerLab", {
     roomId: room?.roomId,
     sessionId: room?.sessionId,
     rtt,
+    renderedTick,
     correction,
     avatars: avatars.size,
     rigsReady: [...avatars.values()].filter(
-      (a) => (a.entity.children[0] as pc.Entity | undefined)?.anim?.baseLayer,
+      (a) =>
+        a.motion ||
+        (a.entity.children[0] as pc.Entity | undefined)?.anim?.baseLayer,
     ).length,
     poses: [...avatars.values()].map((a) => ({
       state: a.state,
-      leg: a.entity.findByName("thigh_R")?.getLocalEulerAngles().x ?? 0,
+      leg:
+        (
+          a.entity.findByName("thigh_R") ?? a.entity.findByName("upperleg01.R")
+        )?.getLocalEulerAngles().x ?? 0,
+      contactError: a.motion?.contactError,
     })),
   }),
 });

@@ -4,6 +4,7 @@
 - Date: 2026-09-20
 - Scope: Project Soccer
 - Legacy references: D17, D31
+- Partially superseded by: [ADR 0017](0017-isolate-the-detailed-character-and-motion-study.md) for the new detailed character study; the original laboratories retain this rig.
 
 ## Context
 

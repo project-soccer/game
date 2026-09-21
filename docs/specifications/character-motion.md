@@ -1,0 +1,53 @@
+# Character and movement study
+
+Updated: 2026-09-21. Status: implemented candidate, awaiting the founder's physical-controller assessment. See [ADR 0017](../adr/0017-isolate-the-detailed-character-and-motion-study.md).
+
+## Purpose and entry
+
+Open http://localhost:5173 and choose **Character & movement study**. This creates a solo server-authoritative room with one detailed footballer and a physical ball. The technical and eight-player squad modes retain the previous model for regression comparison. Reload the page to choose another mode.
+
+The study checks the art pipeline and movement feel before complete-match rules. It does not constitute acceptance of final visual quality.
+
+## Controls
+
+| Input | Effect |
+|---|---|
+| Left stick | Proportional walking and running; full deflection reaches 4.8 m/s |
+| RT + left stick | Sprint, up to 7 m/s |
+| A | Ground pass in the facing direction; there is no teammate in this solo study |
+| Hold B, release B | Charge and shoot |
+| X | Standing tackle action |
+| WASD, Shift, J, K, L | Keyboard equivalents |
+| V or **Close / pitch view** | Toggle close inspection and the elevated pitch camera |
+| R or **Reset the exercise** | Return the footballer and ball to their starting positions |
+| **Stick dead zone** | Set radial drift filtering from 5% to 30%; initial value 14% |
+
+LB / Q has no switching effect in the solo study. It retains the existing switching behavior in the other laboratories. Click the page and press a gamepad button if the browser has not yet exposed the controller. The controller must report the standard Gamepad API mapping. Browser focus loss, hidden pages and disconnection clear input.
+
+The on-screen readout shows filtered stick magnitude, current motion state and speed. The dead zone is a session setting, not saved calibration. Stick directions currently follow pitch axes, including in close view; camera-relative steering and controller remapping are not implemented. Keyboard movement uses full directional input and cannot reproduce small stick deflections.
+
+## Character and animation
+
+The generated model contains **23,480 triangles and 163 bones**, with smooth normals, anatomical face/hands, a simple kit, socks, footwear and short scalp hair. The GLB is approximately 0.9 MB, with uncompressed geometry and plain materials. There are no photographic skin or cloth textures. See [asset provenance](../../THIRD_PARTY_ASSETS.md) and the [source rebuild instructions](../../assets/source/makehuman/README.md).
+
+Locomotion is original procedural animation, not motion capture. Gait phase follows distance travelled, with a walk/run blend, swing-foot lift, basic two-bone leg placement, arm motion and torso lean. Shared movement adds progressive acceleration/braking and slows sharp reversals while turning. Pass/shot foot placement follows the server action window; the physical impulse is never controlled by animation.
+
+In this study, dribble touches are announced six simulation ticks before contact. Their interval follows movement speed within a bounded range. The foot reaches towards the announced ball position; the server rechecks reach and applies a bounded velocity change. A stationary settled ball is not continuously tapped. Losing possession or starting an action cancels the scheduled touch. This remains assisted ball control, not a physical foot collider.
+
+## Verification and limits
+
+Automated coverage checks radial stick filtering, speed ranges, stopping, turn limits, solo capacity/switching, touch scheduling/reset, and snapshot isolation. A renderer-side transform test loads the generated skeleton and checks reachable stationary pass contact in four headings. This is an approximate toe-to-ball test, not proof of contact across every pose.
+
+The Docker browser test loads the actual GLB, supplies a synthetic standard gamepad, verifies walking/running/sprinting/stopping and a server-confirmed pass, and saves screenshots in the ignored `test-results/` folder. Software-rendered browser checks are not representative of Mac GPU performance or the physical Xbox controller. Build and automated checks do not establish animation realism. The initial verification passed 35 automated tests, type checking, the production build, the existing two-client network smoke test and all three browser scenarios. The software browser did not sample a rendered frame within the pass contact window, so there is no end-to-end visual contact measurement from that run.
+
+Known limits: noticeable procedural movement may remain; tight turns and correction after network updates can cause foot sliding; receiving uses the first assisted touch rather than a dedicated trap animation; the sagittal leg solver is approximate; clothes are simple fitted surfaces with unfinished seams; footwear is not a finished boot asset; no goalkeeper or aerial animation work is included. The contact window may be missed visually at very low frame rates. Eight detailed players, real-network behavior, Safari and physical controller behavior have not yet been validated.
+
+## Founder playtest
+
+1. Compare small stick deflections with full movement and RT sprint. Release the stick, reverse direction and make circles.
+2. Repeat while carrying the ball. Observe whether the ball feels attached, escapes too easily, or appears to move without a plausible touch.
+3. Reset, pass and shoot; inspect the wind-up, support leg, contact and recovery from both cameras.
+4. Assess proportions, silhouette, face/hands, kit and overall style. Identify where the body still looks stiff or unnatural.
+5. Record the Mac model, browser, controller connection and any visible stutter before drawing performance conclusions.
+
+Acceptance remains open until this hands-on review. Refine the one-character baseline first; then test the same pipeline with eight footballers before resuming full-match rules.

@@ -26,7 +26,12 @@
       <p>
         A small pitch. A shared ball. The first step towards Project Soccer.
       </p>
-      <button id="create-squad">Train with 3 + keeper <span>↗</span></button>
+      <button id="create-motion">
+        Character &amp; movement study <span>↗</span>
+      </button>
+      <button id="create-squad" class="quiet">
+        Train with 3 + keeper <span>↗</span>
+      </button>
       <button id="create" class="quiet">
         Enter the practice pitch <span>↗</span>
       </button>
@@ -39,7 +44,9 @@
         /><button id="join">Join</button>
       </div>
       <p id="error" role="alert"></p>
-      <small>Early experiment · two participants · no stakes</small>
+      <small
+        >Early experiment · solo study or shared practice · no stakes</small
+      >
     </main>
     <aside id="session" class="panel" hidden>
       <span class="eyebrow">PRIVATE PRACTICE</span>
@@ -51,6 +58,20 @@
       <p id="status">Preparing the pitch…</p>
       <p id="possession" class="possession"></p>
       <p id="pass-feedback" role="status"></p>
+      <div id="motion-tools" hidden>
+        <p id="motion-state">Preparing character…</p>
+        <button id="view" class="quiet">Close / pitch view <kbd>V</kbd></button>
+        <label for="dead-zone">Stick dead zone</label>
+        <input
+          id="dead-zone"
+          type="range"
+          min="0.05"
+          max="0.3"
+          value="0.14"
+          step="0.01"
+        />
+        <small id="stick-value">Move the left stick to test</small>
+      </div>
       <div class="meter">
         <span>SHOT POWER</span
         ><progress id="power" max="1" value="0"></progress>
