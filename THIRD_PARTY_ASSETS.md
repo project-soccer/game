@@ -14,6 +14,12 @@ Modifications: combine two morph targets, normalize height, retain at most four 
 
 Upstream ethnicity and body-shape names are preserved as source filenames. They describe one temporary study model, not the intended diversity or customization limits of the game.
 
+## Quaternius authored locomotion
+
+The imported locomotion source is the free Standard tier of [Universal Animation Library](https://quaternius.itch.io/universal-animation-library), version 3.0 (2026-06-16), by Quaternius, with animation collaboration credited to Gonzalo Furnier. The creator and the archive identify **CC0 1.0**. The unmodified [license notice](assets/source/quaternius/License.txt), upstream README, original root-motion GLB and [checksums](assets/source/quaternius/sources.json) are retained.
+
+The original Project Soccer retargeting script maps four clips onto the existing detailed model, adjusts the bind pose, strips horizontal root travel and compensates ground height. Output: `client/public/assets/footballer-animated.glb`. No paid tier, football-specific motion file or source mannequin mesh is included in the runtime export.
+
 ## Existing original assets
 
 The earlier technical model, animation generator and brand assets are original Project Soccer work. Their presence does not imply that a general project license has been chosen. Imported CC0 graphical data retains its stated terms independently of that unresolved decision.

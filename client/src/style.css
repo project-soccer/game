@@ -344,3 +344,18 @@ input:focus-visible {
   display: block;
   margin: 8px 0;
 }
+
+#animation-source {
+  width: 100%;
+  margin: 8px 0;
+  padding: 9px;
+  color: #edf6f4;
+  background: #20343e;
+  border: 1px solid #496269;
+  border-radius: 7px;
+}
+
+#session {
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
+}

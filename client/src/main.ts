@@ -13,7 +13,7 @@ import {
   type Scenario,
 } from "@project-soccer/game-core";
 import "./style.css";
-import { CharacterMotion } from "./character-motion.ts";
+import { ImportedMotion } from "./imported-motion.ts";
 const el = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T;
 const canvas = el<HTMLCanvasElement>("game");
@@ -164,7 +164,7 @@ const aiCarrierIndicator = ring(
 aiCarrierIndicator.enabled = false;
 const avatars = new Map<
   number,
-  { entity: pc.Entity; state: string; motion?: CharacterMotion }
+  { entity: pc.Entity; state: string; motion?: ImportedMotion }
 >();
 const assetPromise = new Promise<pc.Asset>((resolve, reject) =>
   app.assets.loadFromUrl("/assets/footballer.glb", "container", (err, asset) =>
@@ -187,7 +187,7 @@ async function avatar(p: Footballer) {
     avatars.set(p.id, {
       entity: holder,
       state: "idle",
-      motion: new CharacterMotion(model),
+      motion: new ImportedMotion(model, resource.animations),
     });
     return;
   }
@@ -232,7 +232,7 @@ let detailAsset: Promise<pc.Asset> | undefined;
 function loadDetailedAsset() {
   return (detailAsset ??= new Promise<pc.Asset>((resolve, reject) =>
     app.assets.loadFromUrl(
-      "/assets/footballer-detail.glb",
+      "/assets/footballer-animated.glb",
       "container",
       (err, asset) => (err ? reject(err) : resolve(asset!)),
     ),
@@ -548,10 +548,11 @@ app.on("update", (delta: number) => {
         dt,
         visualBall,
         snapshot?.owner ?? null,
+        el<HTMLSelectElement>("animation-source").value === "imported",
       );
       av.state = av.motion.state;
       el("motion-state").textContent =
-        `${av.state} · ${Math.hypot(p.vx, p.vz).toFixed(1)} m/s`;
+        `${av.state} · ${Math.hypot(p.vx, p.vz).toFixed(1)} m/s · ${av.motion.source}`;
       continue;
     }
     const model = av.entity.children[0] as pc.Entity | undefined;
@@ -639,6 +640,7 @@ Object.defineProperty(window, "soccerLab", {
           a.entity.findByName("thigh_R") ?? a.entity.findByName("upperleg01.R")
         )?.getLocalEulerAngles().x ?? 0,
       contactError: a.motion?.contactError,
+      source: a.motion?.source,
     })),
   }),
 });

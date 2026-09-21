@@ -21,6 +21,7 @@ These ADRs are the authoritative decision record. **Accepted means chosen, not i
 | 0015 | [Experiment with off-ball control and pass requests](0015-experiment-with-off-ball-control-and-pass-requests.md) | Accepted for experiment | Gameplay playtest feedback |
 | 0016 | [Use server-side heuristics for initial team AI](0016-use-server-side-heuristics-for-initial-team-ai.md) | Accepted for experiment | Squad-training increment |
 | 0017 | [Isolate the detailed character and motion study](0017-isolate-the-detailed-character-and-motion-study.md) | Accepted for experiment | Character quality priority; partially supersedes 0010 |
+| 0018 | [Use authored animation clips as the motion baseline](0018-use-authored-animation-clips-as-the-motion-baseline.md) | Accepted for experiment | Founder rejected procedural movement quality; partially supersedes 0017 |
 
 ## Lifecycle
 

@@ -58,7 +58,11 @@ try {
   await a.getByRole("button", { name: "Reset the exercise" }).click();
   await a.waitForTimeout(200);
   await a.keyboard.down("KeyK");
-  await a.waitForTimeout(400);
+  await a.waitForFunction(() => {
+    const lab = window.soccerLab;
+    const player = lab.snapshot.controllers[lab.sessionId].player;
+    return lab.snapshot.players[player].charge > 0.1;
+  });
   await a.keyboard.up("KeyK");
   await a.waitForFunction(() =>
     window.soccerLab.snapshot.events.some((e) => e.type === "shot-contact"),

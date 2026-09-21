@@ -43,6 +43,9 @@ try {
   );
   assert.equal(await page.locator("#motion-tools").isVisible(), true);
   assert.equal(await page.locator("#invite").isVisible(), false);
+  await page.waitForFunction(
+    () => window.soccerLab.poses[0].source === "imported",
+  );
   await page.waitForTimeout(2000);
   await page.screenshot({ path: "test-results/character-idle.png" });
   const start = await page.evaluate(() => window.soccerLab.predicted.z);
@@ -106,9 +109,17 @@ try {
     "test-results/motion-contact.json",
     JSON.stringify(samples, null, 2),
   );
+  await page.selectOption("#animation-source", "procedural");
+  await page.waitForFunction(
+    () => window.soccerLab.poses[0].source === "procedural comparison",
+  );
+  await page.selectOption("#animation-source", "imported");
+  await page.waitForFunction(
+    () => window.soccerLab.poses[0].source === "imported",
+  );
   assert.deepEqual(errors, []);
   console.log(
-    "PASS: detailed character, synthetic analog walk/run/sprint/stop and authoritative pass.",
+    "PASS: detailed character, imported locomotion, synthetic analog controls, authoritative pass and procedural comparison.",
     samples,
   );
 } catch (error) {

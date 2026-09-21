@@ -4,6 +4,7 @@ Start with the short [project map](game-design-and-architecture.md).
 
 - [ADRs](adr/README.md): important accepted decisions and their rationale.
 - [Roadmap](roadmap.md): completed increments and next implementation stage.
+- [Animation candidate evaluation](research/animation-library-evaluation.md): imported trial, football-specific shortlist and purchase criteria.
 - [Character and movement study](specifications/character-motion.md): detailed solo model, analog movement and ball contact quality proof.
 - [Squad training](specifications/squad-training.md): eight-player practice and initial AI.
 - [Action laboratory](specifications/action-laboratory.md): current behavior, commands, controls, and limitations.

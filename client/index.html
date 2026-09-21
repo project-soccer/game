@@ -59,6 +59,15 @@
       <p id="possession" class="possession"></p>
       <p id="pass-feedback" role="status"></p>
       <div id="motion-tools" hidden>
+        <label for="animation-source">Movement animation</label>
+        <select id="animation-source">
+          <option value="imported">Ready-made animations</option>
+          <option value="procedural">Previous procedural version</option>
+        </select>
+        <small
+          >Locomotion comparison. Ball actions still use the previous
+          experiment.</small
+        >
         <p id="motion-state">Preparing character…</p>
         <button id="view" class="quiet">Close / pitch view <kbd>V</kbd></button>
         <label for="dead-zone">Stick dead zone</label>

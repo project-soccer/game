@@ -3,6 +3,7 @@
 - Status: Accepted for experiment
 - Date: 2026-09-21
 - Scope: Game repository
+- Partially superseded by: [ADR 0018](0018-use-authored-animation-clips-as-the-motion-baseline.md) for the default animation approach after founder feedback.
 - Partially supersedes: [ADR 0010](0010-use-a-shared-original-rig-and-synchronized-action-timing.md), model and rig selection for the new study only
 
 ## Context

@@ -15,6 +15,7 @@
     "test:browser": "node tests/browser-smoke.mjs && node tests/squad-browser.mjs && node tests/motion-browser.mjs",
     "assets:player": "node scripts/build-player.mjs",
     "assets:detail": "node scripts/build-detailed-player.mjs",
+    "assets:animations": "node scripts/retarget-locomotion.mjs",
     "format": "prettier --write \"client/src/**/*.{ts,css}\" \"client/*.{html,ts}\" \"server/src/**/*.ts\" \"packages/*/src/**/*.ts\" \"scripts/*.mjs\" \"tests/*.{ts,mjs}\" \"*.{json,yaml}\" \"{client,server,packages/game-core}/package.json\""
   },
   "devDependencies": {

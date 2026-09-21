@@ -4,6 +4,6 @@ PlayCanvas/Vite browser client for the technical laboratory, squad training and 
 
 Use the root [setup guide](../docs/specifications/action-laboratory.md). The client connects through Vite's same-origin matchmaking/WebSocket proxy. It never authorizes goals or supplies trusted ball coordinates.
 
-The [character study](../docs/specifications/character-motion.md) adds a CC0 graphical base, original procedural pose controller, proportional stick input and close inspection. Its renderer-side geometry tests run in Node without launching a browser.
+The [character study](../docs/specifications/character-motion.md) adds a CC0 graphical base, imported authored locomotion through PlayCanvas blending, with the earlier procedural controller retained for comparison and football actions, proportional stick input and close inspection. Its renderer-side geometry tests run in Node without launching a browser.
 
 The full match, production ball prediction, remapping interface, and final character art are not implemented. Decisions live in the [ADR index](../docs/adr/README.md). All documentation is English.

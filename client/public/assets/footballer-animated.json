@@ -1,0 +1,29 @@
+{
+  "source": "https://quaternius.itch.io/universal-animation-library",
+  "version": "3.0 (2026-06-16)",
+  "license": "CC0-1.0",
+  "scale": 1.0880130525249614,
+  "mappedBones": 50,
+  "clips": {
+    "idle": {
+      "source": "Idle_Loop",
+      "duration": 2.5,
+      "frames": 76
+    },
+    "walk": {
+      "source": "Walk_Loop",
+      "duration": 1.3333333730697632,
+      "frames": 41
+    },
+    "run": {
+      "source": "Jog_Fwd_Loop",
+      "duration": 0.9333333373069763,
+      "frames": 29
+    },
+    "sprint": {
+      "source": "Sprint_Loop",
+      "duration": 0.6666666865348816,
+      "frames": 21
+    }
+  }
+}

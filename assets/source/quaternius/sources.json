@@ -1,0 +1,26 @@
+{
+  "author": "Quaternius; animation collaboration credited to Gonzalo Furnier",
+  "page": "https://quaternius.itch.io/universal-animation-library",
+  "version": "3.0 (2026-06-16)",
+  "tier": "Standard (free)",
+  "license": "CC0-1.0",
+  "retrieved": "2026-09-21",
+  "archiveSha256": "cc73fc4e495b82958207316596317a3f40b9fa38065bde1027937452da537724",
+  "files": [
+    {
+      "archivePath": "License.txt",
+      "file": "License.txt",
+      "sha256": "6d01f55c6e4c49a2c9963e147e561945ae2c83958c8ca667d90a6bffdbfac061"
+    },
+    {
+      "archivePath": "README.txt",
+      "file": "README.txt",
+      "sha256": "ccd02718886b5a57f10f0a8911a38cfe10c36880e1d6dfa3445923fba32d2a72"
+    },
+    {
+      "archivePath": "Unreal-Godot/UAL1_Standard_RM.glb",
+      "file": "UAL1_Standard_RM.glb",
+      "sha256": "be684571ed655a1b892c2c07e6e2aeca053b606c442d34004adaf1d944090d01"
+    }
+  ]
+}
