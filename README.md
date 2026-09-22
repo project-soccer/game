@@ -12,7 +12,7 @@ Open http://localhost:5173, enter the practice pitch, and use **Invite** to shar
 
 See the [laboratory specification](docs/specifications/action-laboratory.md) for controls, checks, optional local setup, and limitations.
 
-Choose **Character & movement study** for the new [solo quality proof](docs/specifications/character-motion.md): a detailed footballer, imported CC0 locomotion with a selector for the previous procedural version, proportional stick movement, adjustable dead zone and close inspection camera. This is the current priority; the previous animation and ball-control quality were rejected, and this new locomotion comparison awaits hands-on review.
+Choose **Character & movement study** for the new [solo quality proof](docs/specifications/character-motion.md): a detailed footballer, imported CC0 locomotion with a selector for the previous procedural version, proportional stick movement, adjustable dead zone and close inspection camera. This is the current priority; the previous animation and ball-control quality were rejected, the first imported locomotion was judged better but insufficient. Two recorded CMU soccer kicks can now be compared through **Shot animation**, alongside the previous shot. A panelled football with physical rotation is available in all modes.
 
 Choose **Train with 3 + keeper** for the new [eight-player training mode](docs/specifications/squad-training.md), with initial support/pressure AI and keeper control, parries and distribution. The original practice pitch remains available for isolated action tests.
 
@@ -37,4 +37,4 @@ Try the [off-ball control experiment](docs/specifications/off-ball-control.md): 
 | [packages/game-core](packages/game-core/README.md) | Shared protocol/movement and headless Rapier simulation |
 | [docs](docs/README.md) | ADRs, specifications, open questions, and historical research |
 
-The original laboratories use a nine-joint test model. The new solo study uses a detailed CC0 graphical base with imported authored locomotion and a temporary procedural football-action fallback; see [asset notices](THIRD_PARTY_ASSETS.md). Animation polish, actual gamepad validation, real-network quality, improved tactics/keeper behavior, complete match rules, and economic integration remain future work. The general project license remains undecided. All documentation is English.
+The original laboratories use a nine-joint test model. The new solo study uses a detailed CC0 graphical base with imported authored locomotion, two recorded shot candidates and a temporary procedural fallback for passes/tackles; see [asset notices](THIRD_PARTY_ASSETS.md). Animation polish, actual gamepad validation, real-network quality, improved tactics/keeper behavior, complete match rules, and economic integration remain future work. The general project license remains undecided. All documentation is English.

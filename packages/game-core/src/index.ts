@@ -1,4 +1,4 @@
-export const PROTOCOL = "soccer-lab-4";
+export const PROTOCOL = "soccer-lab-5";
 export const DT = 1 / 60;
 export const BALL_RADIUS = 0.11;
 export const PITCH = {
@@ -127,7 +127,15 @@ export type Snapshot = {
   protocol: string;
   tick: number;
   players: Footballer[];
-  ball: { x: number; y: number; z: number; vx: number; vy: number; vz: number };
+  ball: {
+    x: number;
+    y: number;
+    z: number;
+    vx: number;
+    vy: number;
+    vz: number;
+    rotation: { x: number; y: number; z: number; w: number };
+  };
   owner: number | null;
   controllers: Record<string, Controller>;
   events: LabEvent[];

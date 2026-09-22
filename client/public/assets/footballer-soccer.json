@@ -1,0 +1,46 @@
+{
+  "source": "https://mocap.cs.cmu.edu/",
+  "sampleRate": 120,
+  "outputRate": 60,
+  "mappedBones": 20,
+  "clips": {
+    "soccer-kick-a": {
+      "file": "10_01.amc",
+      "startFrame": 563,
+      "contactFrame": 599,
+      "endFrame": 665,
+      "contactTime": 0.3,
+      "duration": 0.85,
+      "foot": "R",
+      "contactToe": [
+        -0.05009651078100286,
+        0.10220478176660995,
+        0.6271942225087749
+      ],
+      "contactSupportFoot": [
+        0.06505727690635707,
+        0.10163306689950166,
+        0.05351069462594685
+      ]
+    },
+    "soccer-kick-b": {
+      "file": "10_02.amc",
+      "startFrame": 317,
+      "contactFrame": 353,
+      "endFrame": 419,
+      "contactTime": 0.3,
+      "duration": 0.85,
+      "foot": "R",
+      "contactToe": [
+        -0.04784323289868093,
+        0.10898406115738828,
+        0.7006121230576434
+      ],
+      "contactSupportFoot": [
+        0.14149840585920692,
+        0.09520437933178541,
+        0.18779231905476215
+      ]
+    }
+  }
+}

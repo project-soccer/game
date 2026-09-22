@@ -31,6 +31,13 @@ try {
     "two controllers",
   );
   const initial = latest.get(a.sessionId)!;
+  for (const sessionId of [a.sessionId, b.sessionId]) {
+    const q = latest.get(sessionId)!.ball.rotation;
+    assert.ok(
+      Math.abs(Math.hypot(q.x, q.y, q.z, q.w) - 1) < 1e-5,
+      "Physical ball orientation must reach both clients",
+    );
+  }
   assert.notEqual(
     initial.controllers[a.sessionId].player,
     initial.controllers[b.sessionId].player,

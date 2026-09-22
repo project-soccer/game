@@ -1,0 +1,23 @@
+{
+  "author": "CMU Graphics Lab",
+  "retrieved": "2026-09-22",
+  "subject": 10,
+  "fps": 120,
+  "files": [
+    {
+      "file": "10.asf",
+      "url": "https://mocap.cs.cmu.edu/subjects/10/10.asf",
+      "sha256": "d4e604fd582403e9f4bca3382e74dd0cc01e15cd712255e7bd34863b922b6200"
+    },
+    {
+      "file": "10_01.amc",
+      "url": "https://mocap.cs.cmu.edu/subjects/10/10_01.amc",
+      "sha256": "4277e748947e8703825f340f94582f48997ca01b308f2447075eab4c42029e84"
+    },
+    {
+      "file": "10_02.amc",
+      "url": "https://mocap.cs.cmu.edu/subjects/10/10_02.amc",
+      "sha256": "68d08f7b47bca54e1fd9ca1739533f8dc973e1200a93c1f4471891a266769d53"
+    }
+  ]
+}

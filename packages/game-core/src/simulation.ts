@@ -109,6 +109,7 @@ export class Simulation {
     this.ball.setTranslation({ x: -4.35, y: BALL_RADIUS + 0.01, z: 0 }, true);
     this.ball.setLinvel({ x: 0, y: 0, z: 0 }, true);
     this.ball.setAngvel({ x: 0, y: 0, z: 0 }, true);
+    this.ball.setRotation({ x: 0, y: 0, z: 0, w: 1 }, true);
     this.owner = 0;
     this.freeUntil = 0;
     this.lastKicker = -1;
@@ -740,7 +741,13 @@ export class Simulation {
         action: p.action ? { ...p.action } : null,
         touch: p.touch ? { ...p.touch } : null,
       })),
-      ball: { ...b, vx: v.x, vy: v.y, vz: v.z },
+      ball: {
+        ...b,
+        vx: v.x,
+        vy: v.y,
+        vz: v.z,
+        rotation: { ...this.ball.rotation() },
+      },
       owner: this.owner,
       controllers: Object.fromEntries(
         [...this.slots].map(([id, s]) => [id, { ...s.controller }]),

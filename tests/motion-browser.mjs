@@ -109,6 +109,55 @@ try {
     "test-results/motion-contact.json",
     JSON.stringify(samples, null, 2),
   );
+  for (const [clip, source] of [
+    ["soccer-kick-a", "CMU kick A"],
+    ["soccer-kick-b", "CMU kick B"],
+  ]) {
+    await page.getByRole("button", { name: "Reset the exercise" }).click();
+    await page.waitForFunction(
+      () => !window.soccerLab.snapshot.players[0].action,
+    );
+    await page.selectOption("#shot-source", clip);
+    const eventId = await page.evaluate(
+      () => window.soccerLab.snapshot.events.at(-1)?.id ?? 0,
+    );
+    await page.evaluate(() => {
+      window.shotSources = [];
+      window.shotTimer = setInterval(
+        () => window.shotSources.push(window.soccerLab.poses[0].source),
+        10,
+      );
+      window.testPad.buttons[1] = { pressed: true, value: 1 };
+    });
+    await page.waitForFunction(
+      () => window.soccerLab.snapshot.players[0].charge > 0.15,
+    );
+    await page.evaluate(() => {
+      window.testPad.buttons[1] = { pressed: false, value: 0 };
+    });
+    await page.waitForFunction(
+      (id) =>
+        window.soccerLab.snapshot.events.some(
+          (e) => e.id > id && e.type === "shot-contact",
+        ),
+      eventId,
+    );
+    await page.waitForFunction((s) => window.shotSources.includes(s), source);
+    const shotSources = await page.evaluate(() => {
+      clearInterval(window.shotTimer);
+      return window.shotSources;
+    });
+    assert.ok(
+      shotSources.includes(source),
+      `${clip} must actually play during the shot`,
+    );
+    await page.waitForFunction(
+      () => window.soccerLab.poses[0].source === "imported",
+    );
+  }
+  const ballVisual = await page.evaluate(() => window.soccerLab.ballVisual);
+  assert.equal(ballVisual.panels, 32);
+  assert.ok(Object.values(ballVisual.rotation).every(Number.isFinite));
   await page.selectOption("#animation-source", "procedural");
   await page.waitForFunction(
     () => window.soccerLab.poses[0].source === "procedural comparison",
@@ -119,7 +168,7 @@ try {
   );
   assert.deepEqual(errors, []);
   console.log(
-    "PASS: detailed character, imported locomotion, synthetic analog controls, authoritative pass and procedural comparison.",
+    "PASS: detailed character, imported locomotion, two recorded shots, physical ball rotation, analog controls, authoritative pass and procedural comparison.",
     samples,
   );
 } catch (error) {

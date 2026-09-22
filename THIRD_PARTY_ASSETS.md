@@ -18,8 +18,14 @@ Upstream ethnicity and body-shape names are preserved as source filenames. They 
 
 The imported locomotion source is the free Standard tier of [Universal Animation Library](https://quaternius.itch.io/universal-animation-library), version 3.0 (2026-06-16), by Quaternius, with animation collaboration credited to Gonzalo Furnier. The creator and the archive identify **CC0 1.0**. The unmodified [license notice](assets/source/quaternius/License.txt), upstream README, original root-motion GLB and [checksums](assets/source/quaternius/sources.json) are retained.
 
-The original Project Soccer retargeting script maps four clips onto the existing detailed model, adjusts the bind pose, strips horizontal root travel and compensates ground height. Output: `client/public/assets/footballer-animated.glb`. No paid tier, football-specific motion file or source mannequin mesh is included in the runtime export.
+The original Project Soccer retargeting script maps four clips onto the existing detailed model, adjusts the bind pose, strips horizontal root travel and compensates ground height. Output: `client/public/assets/footballer-animated.glb`. No paid Quaternius tier or source mannequin mesh is included. The combined runtime export also contains the separately licensed CMU kicks described below.
+
+## CMU recorded soccer kicks
+
+Two recordings from the [CMU Graphics Lab database](https://mocap.cs.cmu.edu/), subject 10 takes 01 and 02, are adapted to the detailed character for experimental shots. The original skeleton/recordings and [source manifest](assets/source/cmu/sources.json) are retained. CMU explicitly permits copying, modification and redistribution, and inclusion in commercial products, but prohibits direct resale of the motion data, including conversions. This is **not CC0**. See the [source and conversion notes](assets/source/cmu/README.md) and linked original terms.
+
+The data used in this project was obtained from mocap.cs.cmu.edu. The database was created with funding from NSF EIA-0196217.
 
 ## Existing original assets
 
-The earlier technical model, animation generator and brand assets are original Project Soccer work. Their presence does not imply that a general project license has been chosen. Imported CC0 graphical data retains its stated terms independently of that unresolved decision.
+The spherical 32-panel football geometry/materials, earlier technical model, animation generator and brand assets are original Project Soccer work. Their presence does not imply that a general project license has been chosen. Imported CC0 graphical data retains its stated terms independently of that unresolved decision.

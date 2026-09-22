@@ -1,7 +1,7 @@
 {
   "source": "https://quaternius.itch.io/universal-animation-library",
   "version": "3.0 (2026-06-16)",
-  "license": "CC0-1.0",
+  "license": "Multiple asset terms; see THIRD_PARTY_ASSETS.md",
   "scale": 1.0880130525249614,
   "mappedBones": 50,
   "clips": {
@@ -24,6 +24,54 @@
       "source": "Sprint_Loop",
       "duration": 0.6666666865348816,
       "frames": 21
+    },
+    "soccer-kick-a": {
+      "file": "10_01.amc",
+      "startFrame": 563,
+      "contactFrame": 599,
+      "endFrame": 665,
+      "contactTime": 0.3,
+      "duration": 0.85,
+      "foot": "R",
+      "contactToe": [
+        -0.05009651078100286,
+        0.10220478176660995,
+        0.6271942225087749
+      ],
+      "contactSupportFoot": [
+        0.06505727690635707,
+        0.10163306689950166,
+        0.05351069462594685
+      ]
+    },
+    "soccer-kick-b": {
+      "file": "10_02.amc",
+      "startFrame": 317,
+      "contactFrame": 353,
+      "endFrame": 419,
+      "contactTime": 0.3,
+      "duration": 0.85,
+      "foot": "R",
+      "contactToe": [
+        -0.04784323289868093,
+        0.10898406115738828,
+        0.7006121230576434
+      ],
+      "contactSupportFoot": [
+        0.14149840585920692,
+        0.09520437933178541,
+        0.18779231905476215
+      ]
+    }
+  },
+  "sources": {
+    "locomotion": {
+      "url": "https://quaternius.itch.io/universal-animation-library",
+      "license": "CC0-1.0"
+    },
+    "soccer": {
+      "url": "https://mocap.cs.cmu.edu/",
+      "terms": "Copying, modification and redistribution permitted; direct resale of motion data prohibited"
     }
   }
 }

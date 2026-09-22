@@ -14,9 +14,14 @@ import {
 } from "@project-soccer/game-core";
 import "./style.css";
 import { ImportedMotion } from "./imported-motion.ts";
+import { createFootball, createBallShadow } from "./football.ts";
 const el = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T;
 const canvas = el<HTMLCanvasElement>("game");
+el<HTMLSelectElement>("animation-source").addEventListener("change", () => {
+  el<HTMLSelectElement>("shot-source").disabled =
+    el<HTMLSelectElement>("animation-source").value !== "imported";
+});
 const app = new pc.Application(canvas, {
   graphicsDeviceOptions: { antialias: true, alpha: false },
 });
@@ -133,20 +138,12 @@ for (const side of [-1, 1]) {
   for (let y = 0.3; y <= 2; y += 0.3)
     shape("net", "box", [side * 21, y, 0], [0.025, 0.025, 4], line);
 }
-const football = shape(
-  "ball",
-  "sphere",
-  [-4.35, 0.13, 0],
-  [0.22, 0.22, 0.22],
-  white,
-);
-const ballMark = shape(
-  "ball ground marker",
-  "cylinder",
-  [-4.35, 0.03, 0],
-  [0.42, 0.008, 0.42],
-  material("#b7e9cb"),
-);
+const football = createFootball(app);
+const ballRotation = new pc.Quat(),
+  oldBallRotation = new pc.Quat(),
+  newBallRotation = new pc.Quat();
+const ballMark = createBallShadow(app);
+ballMark.setPosition(-4.35, 0.006, 0);
 const indicator = ring(
   "controlled footballer",
   -5,
@@ -549,6 +546,7 @@ app.on("update", (delta: number) => {
         visualBall,
         snapshot?.owner ?? null,
         el<HTMLSelectElement>("animation-source").value === "imported",
+        el<HTMLSelectElement>("shot-source").value,
       );
       av.state = av.motion.state;
       el("motion-state").textContent =
@@ -587,11 +585,24 @@ app.on("update", (delta: number) => {
       old.y + (b.y - old.y) * alpha,
       old.z + (b.z - old.z) * alpha,
     );
+    oldBallRotation.set(
+      old.rotation.x,
+      old.rotation.y,
+      old.rotation.z,
+      old.rotation.w,
+    );
+    newBallRotation.set(b.rotation.x, b.rotation.y, b.rotation.z, b.rotation.w);
+    football.setRotation(
+      ballRotation.slerp(oldBallRotation, newBallRotation, alpha),
+    );
     ballMark.setPosition(
       football.getPosition().x,
-      0.028,
+      0.006,
       football.getPosition().z,
     );
+    const shadowScale =
+      0.36 + Math.min(1.5, Math.max(0, football.getPosition().y - 0.11)) * 0.16;
+    ballMark.setLocalScale(shadowScale, 1, shadowScale);
   }
   if (predicted) {
     indicator.setPosition(predicted.x, 0, predicted.z);
@@ -628,6 +639,7 @@ Object.defineProperty(window, "soccerLab", {
     renderedTick,
     correction,
     avatars: avatars.size,
+    ballVisual: { rotation: football.getRotation().clone(), panels: 32 },
     rigsReady: [...avatars.values()].filter(
       (a) =>
         a.motion ||

@@ -12,6 +12,24 @@ import {
   initPhysics,
 } from "../packages/game-core/src/simulation.ts";
 await initPhysics();
+test("Ball snapshots expose physical rotation and reset it without sharing mutable state", () => {
+  const sim = new Simulation();
+  try {
+    sim.ball.setTranslation({ x: 0, y: 2, z: 0 }, true);
+    sim.ball.setAngvel({ x: 5, y: 1, z: 0 }, true);
+    for (let i = 0; i < 12; i++) sim.step();
+    const q = sim.snapshot().ball.rotation;
+    assert.ok(Math.abs(Math.hypot(q.x, q.y, q.z, q.w) - 1) < 1e-5);
+    assert.ok(Math.abs(q.x) > 0.1);
+    q.x = 999;
+    assert.notEqual(sim.snapshot().ball.rotation.x, 999);
+    sim.reset();
+    assert.deepEqual(sim.snapshot().ball.rotation, { x: 0, y: 0, z: 0, w: 1 });
+    assert.deepEqual({ ...sim.ball.angvel() }, { x: 0, y: 0, z: 0 });
+  } finally {
+    sim.dispose();
+  }
+});
 function fixture() {
   const sim = new Simulation();
   sim.addController("a");

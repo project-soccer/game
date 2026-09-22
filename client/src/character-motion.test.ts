@@ -55,6 +55,7 @@ test("Detailed rig places the kicking foot near a reachable ball at server conta
       vx: 0,
       vy: 0,
       vz: 0,
+      rotation: { x: 0, y: 0, z: 0, w: 1 },
     };
     for (let t = 0; t <= 10; t++) motion.update(p, t, DT, ball, 0);
     assert.ok(

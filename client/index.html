@@ -64,9 +64,15 @@
           <option value="imported">Ready-made animations</option>
           <option value="procedural">Previous procedural version</option>
         </select>
+        <label for="shot-source">Shot animation</label>
+        <select id="shot-source">
+          <option value="soccer-kick-a">Recorded kick A · CMU</option>
+          <option value="soccer-kick-b">Recorded kick B · CMU</option>
+          <option value="procedural">Previous procedural shot</option>
+        </select>
         <small
-          >Locomotion comparison. Ball actions still use the previous
-          experiment.</small
+          >Hold B / K and release to compare shots. Passing, tackling and
+          dribbling still use the previous experiment.</small
         >
         <p id="motion-state">Preparing character…</p>
         <button id="view" class="quiet">Close / pitch view <kbd>V</kbd></button>

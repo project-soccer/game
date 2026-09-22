@@ -47,13 +47,13 @@ Local checks: `npm run typecheck`, `npm test`, `npm run build`; with the server 
 
 ## Implemented scope
 
-- Standalone PlayCanvas pitch, sideline camera, lighting, ball, and original skinned humanoid GLB.
+- Standalone PlayCanvas pitch, sideline camera, lighting, original 32-panel spherical ball with replicated physical rotation, and original skinned humanoid GLB.
 - Four outfield test footballers: one human-controlled footballer and one waiting target teammate per team. This is not the future eight-footballer match.
 - Rapier server-side ball simulation; shared bounded movement; standing-tackle/pass/shot action phases.
 - Two-participant private Colyseus rooms; intent validation, sequence/assignment checks, queue/rate bounds, input timeout, server snapshots, local movement prediction and reconciliation.
 - Ground passing, charge/release shooting, sprint, manual switching, and recipient handoff after a pass contact in team mode.
 - [Off-ball control experiment](off-ball-control.md): switch away from possession, position the receiver, and request a physical ground pass from the AI carrier while retaining receiver control.
-- Original idle/run/sprint/pass/shot/tackle/receive animation clips; no third-party model or motion files.
+- Original idle/run/sprint/pass/shot/tackle/receive animation clips in this technical scenario. The separate detailed character study uses the third-party assets documented in its specification.
 - A shot counter and automatic exercise reset on an out-of-bounds ball. These are laboratory conveniences, not complete match rules.
 - A core `individual` control mode that prohibits switching, checked programmatically; the current user interface starts team-control rooms.
 
@@ -97,3 +97,5 @@ Verified on 2026-09-20 through Docker Compose: TypeScript checks, 21 simulation 
 - Browser smoke tests open two isolated browser contexts, load the rigged pitch, move via keyboard, observe the same charged shot, then switch, run off the ball, call for a pass and receive while retaining control. Screenshots support visual inspection.
 
 Automated checks are not gameplay approval. Actual gamepads, multiple browser engines, non-local network conditions, eight/22-footballer load, and animation quality require further testing.
+
+The 2026-09-22 ball presentation update replaces the white sphere and bright ground disc with spherical black/ivory panels, recessed seams and a soft contact shadow. Snapshot protocol `soccer-lab-5` includes Rapier ball orientation; clients interpolate it rather than estimating spin. Reset clears orientation and angular velocity. Ball radius, collision geometry, mass and gameplay impulses are unchanged.
